@@ -4,8 +4,8 @@
 <title>Skarl AI</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-<meta name="description" content="Skarl AI - Advanced Personal AI Assistant created by Surya Biswas and co-founded by Sayak Biswas.">
-<meta name="keywords" content="Skarl AI, Skarl, AI Chatbot, Artificial Intelligence, Surya Biswas, Sayak Biswas, Skarl.sbs">
+<meta name="description" content="Skarl AI - Advanced Personal AI Assistant created by Sayak Biswas and  Surya Biswas.">
+<meta name="keywords" content="Skarl AI, Skarl, AI Chatbot, Artificial Intelligence, Sayak Biswas, Surya Biswas, Skarl.sbs">
 <meta name="author" content="Surya Biswas, Sayak Biswas">
 
 <link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
@@ -235,6 +235,44 @@
     scrollbar-width: thin;
     scrollbar-color: #d1d5db transparent;
   }
+  
+  /* 🌟 Image Preview Styling */
+  .preview-container {
+    display: none;
+    padding: 10px 20px;
+    background: #f8fafc;
+    border-top: 1px solid #e5e7eb;
+    position: relative;
+    z-index: 10;
+  }
+  
+  .preview-box {
+    position: relative;
+    display: inline-block;
+  }
+  
+  .preview-box img {
+    height: 60px;
+    border-radius: 8px;
+    border: 2px solid #cbd5e1;
+  }
+  
+  .remove-img-btn {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
   .input-area {
     padding: 16px 20px;
@@ -245,6 +283,26 @@
     align-items: center;
     position: relative;
     z-index: 10;
+  }
+  
+  /* 🌟 Upload Button Styling */
+  .upload-btn {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: background 0.2s;
+  }
+
+  .upload-btn:hover {
+    background: #e2e8f0;
   }
 
   #message {
@@ -312,6 +370,14 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); 
     border: 1px solid rgba(0, 0, 0, 0.02);
     line-height: 1.5;
+  }
+  
+  /* 🌟 চ্যাটে ছবি দেখানোর স্টাইল */
+  .user-img-msg {
+    max-width: 200px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    display: block;
   }
 
   .modal-overlay {
@@ -493,8 +559,18 @@
     </div>
 
     <div id="chat"></div>
+    
+    <div class="preview-container" id="preview-container">
+      <div class="preview-box">
+        <img id="image-preview" src="" alt="Selected Image">
+        <button class="remove-img-btn" onclick="removeImage()">✖</button>
+      </div>
+    </div>
 
     <div class="input-area">
+      <button class="upload-btn" onclick="document.getElementById('image-upload').click()">📎</button>
+      <input type="file" id="image-upload" accept="image/*" style="display: none;">
+      
       <input id="message" placeholder="Ask something...">
       <button class="send-btn" onclick="sendMessage(); document.getElementById('message').blur();">Send</button>
     </div>
