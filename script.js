@@ -301,8 +301,8 @@ async function sendMessage(){
 
 
     input.disabled=false;
-
-    input.focus();
+    
+    // input.focus(); // 🚨 এই লাইনটির জন্যই কীবোর্ড বারবার খুলে যাচ্ছিল, তাই এটি বন্ধ করে দেওয়া হলো!
 
 }
 
@@ -330,6 +330,7 @@ document.addEventListener(
             event.preventDefault();
 
             sendMessage();
+            input.blur(); // এন্টার চাপার সাথে সাথে কীবোর্ড নামিয়ে দেওয়ার জন্য এটি যোগ করা হলো
 
         }
 
