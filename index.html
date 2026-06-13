@@ -8,15 +8,15 @@
     font-family: 'Inter', sans-serif;
     background-color: #0f172a; 
     background-image: 
-      linear-gradient(rgba(30, 41, 59, 0.5) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(30, 41, 59, 0.5) 1px, transparent 1px);
+      linear-gradient(rgba(45, 57, 75, 0.5) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(45, 56, 70, 0.5) 1px, transparent 1px);
     background-size: 20px 20px; 
     display: flex; 
     justify-content: center;
     align-items: center;
     height: 100vh;
     margin: 0;
-    color: #cbd5e1; 
+    color: #115ab3; 
   }
 
   .main-layout { 
@@ -25,18 +25,18 @@
     width: 90vw;
     max-width: 1200px;
     height: 85vh;
-    background: #1a202c; 
+    background: #edeff5; 
     border-radius: 16px;
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.08);
     overflow: hidden;
-    border: 1px solid #334155;
+    border: 1px solid #e2e9f4;
   }
 
   .history-sidebar {
-    background-color: #1e293b; 
+    background-color: #252429; 
     color: #cbd5e1; 
     padding: 16px;
-    border-right: 1px solid #334155;
+    border-right: 1px solid #eff1f4;
     display: flex;
     flex-direction: column;
     overflow-y: auto;
@@ -61,7 +61,7 @@
   }
 
   .chat-container {
-    background: #ffffff; 
+    background: linear-gradient(135deg, #6fbdee 0%, #d6e3f4 100%); 
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -72,7 +72,7 @@
     padding: 16px;
     border-bottom: 1px solid #e5e7eb;
     background: linear-gradient(to right, #1e293b 0%, #334155 100%); 
-    color: white;
+    color: rgb(151, 71, 71);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -115,7 +115,7 @@
   .history-item {
     padding: 8px 10px;
     margin-bottom: 8px;
-    background-color: #334155;
+    background-color: #1a84b5;
     border-radius: 8px;
     cursor: pointer;
     font-size: 0.85rem;
@@ -127,11 +127,11 @@
   }
 
   .history-item:hover {
-    background-color: #475569;
+    background-color: #e5e9ef;
   }
 
   .history-item.active {
-    background-color: #475569;
+    background-color: #649b06;
     border: 1px solid #64748b; 
   }
 
@@ -207,13 +207,14 @@
   }
 
   #message:focus {
-    border-color: #6a11cb; 
-    box-shadow: 0 0 0 3px rgba(106, 17, 203, 0.2); 
+    border-color: #4659e8; 
+    box-shadow: 0 0 0 3px rgba(232, 218, 232, 0.941); 
   }
 
   button.send-btn {
     padding: 10px 24px;
-    background-color: #6a11cb; 
+    background-color: #581ce6;
+    background: linear-gradient(135deg, #6737d8 0%, #b8bcc1 100%); 
     color: white;
     border: none;
     border-radius: 24px; 
@@ -224,7 +225,7 @@
 
   button.send-btn:hover {
     background-color: #1d4ed8;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 
+    box-shadow: 0 4px 8px rgba(243, 238, 238, 0.938); 
   }
 
   .message-wrapper {
@@ -239,7 +240,7 @@
   }
 
   .user-message {
-    background-color: #2575fc; 
+    background: linear-gradient(135deg, #6737d8 0%, #b8bcc1 100%); 
     color: white;
     padding: 12px 16px;
     border-radius: 18px 18px 4px 18px;
@@ -324,7 +325,7 @@
       width: 260px;
       z-index: 1000; 
       transition: left 0.3s ease; 
-      box-shadow: 4px 0 15px rgba(0,0,0,0.5);
+      box-shadow: 4px 0 15px rgba(236, 230, 230, 0.963);
       border-right: none;
       max-height: 100%;
     }
