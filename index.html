@@ -471,9 +471,11 @@
       <h3>History</h3>
       <button class="close-btn" onclick="toggleSidebar()">✖</button>
     </div>
-    
-    <button id="new-chat-btn" onclick="startNewChat()">➕ New Chat</button>
-    
+
+    <div style="width: 100%; display: block; clear: both; position: relative; z-index: 1010;">
+      <button id="new-chat-btn" onclick="startNewChat()">➕ New Chat</button>
+    </div>
+
     <div id="history-list"></div>
     <button id="clear-history">🗑️ Clear History</button>
   </div>
