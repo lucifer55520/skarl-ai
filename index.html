@@ -2,21 +2,28 @@
 <html>
 <head>
 <title>Skarl AI</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <style>
+  /* একদম পারফেক্ট ফিটিংয়ের জন্য বেসিক রিসেট */
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
   body {
     font-family: 'Inter', sans-serif;
     background-color: #0f172a; 
     background-image: 
-      linear-gradient(rgba(45, 57, 75, 0.5) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(45, 56, 70, 0.5) 1px, transparent 1px);
+      linear-gradient(rgba(30, 41, 59, 0.5) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(30, 41, 59, 0.5) 1px, transparent 1px);
     background-size: 20px 20px; 
     display: flex; 
     justify-content: center;
     align-items: center;
-    height: 100vh;
-    margin: 0;
-    color: #115ab3; 
+    height: 100dvh; /* 100vh এর বদলে 100dvh ব্যবহার করা হয়েছে যাতে নিচে না নেমে যায় */
+    overflow: hidden; /* বডির স্ক্রলিং পুরোপুরি বন্ধ করা হলো */
+    color: #cbd5e1; 
   }
 
   .main-layout { 
@@ -25,33 +32,18 @@
     width: 90vw;
     max-width: 1200px;
     height: 85vh;
-    background: #edeff5; 
+    background: #1a202c; 
     border-radius: 16px;
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.08);
     overflow: hidden;
-    border: 1px solid #e2e9f4;
-  }
-
-  /* Overlay for mobile sidebar */
-  .sidebar-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(2px);
-    z-index: 999;
-    opacity: 0;
-    transition: opacity 0.3s ease;
+    border: 1px solid #334155;
   }
 
   .history-sidebar {
-    background-color: #252429; 
+    background-color: #1e293b; 
     color: #cbd5e1; 
     padding: 16px;
-    border-right: 1px solid #eff1f4;
+    border-right: 1px solid #334155;
     display: flex;
     flex-direction: column;
     overflow-y: auto;
@@ -76,18 +68,20 @@
   }
 
   .chat-container {
-    background: linear-gradient(135deg, #6fbdee 0%, #d6e3f4 100%); 
+    background: #ffffff; 
     display: flex;
     flex-direction: column;
     overflow: hidden;
     position: relative; 
+    width: 100%;
+    height: 100%;
   }
 
   header {
     padding: 16px;
     border-bottom: 1px solid #e5e7eb;
     background: linear-gradient(to right, #1e293b 0%, #334155 100%); 
-    color: rgb(151, 71, 71);
+    color: white;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -127,46 +121,7 @@
     font-weight: 600;
   }
 
-  .history-item {
-    padding: 8px 10px;
-    margin-bottom: 8px;
-    background-color: #1a84b5;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 0.85rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    transition: background-color 0.2s, border 0.2s;
-    border: 1px solid transparent; 
-  }
-
-  .history-item:hover {
-    background-color: #e5e9ef;
-  }
-
-  .history-item.active {
-    background-color: #649b06;
-    border: 1px solid #64748b; 
-  }
-
-  #clear-history {
-    width: 100%;
-    padding: 8px;
-    margin-top: 15px;
-    background-color: #dc2626; 
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-  }
-
-  #clear-history:hover {
-    background-color: #b91c1c;
-  }
-
-  /* Watermark CSS */
+  /* Watermark CSS - লোগোর ব্যাকগ্রাউন্ড মুছে ফেলার ম্যাজিক আপডেট করা হলো */
   .chat-watermark {
     position: absolute;
     top: 50%;
@@ -177,12 +132,15 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    width: 100%;
   }
 
   .chat-watermark img {
-    width: 320px; 
-    mix-blend-mode: multiply; 
-    opacity: 0.7; 
+    width: 350px; 
+    /* color-burn এবং multiply একত্রে ব্যাকগ্রাউন্ডকে জাদুর মতো মুছে দেবে */
+    mix-blend-mode: darken; 
+    filter: grayscale(100%) contrast(1.5); 
+    opacity: 0.12; 
   }
 
   #chat {
@@ -200,7 +158,7 @@
   }
 
   .input-area {
-    padding: 20px;
+    padding: 16px 20px;
     background: #ffffff;
     border-top: 1px solid #e5e7eb;
     display: flex; 
@@ -222,14 +180,13 @@
   }
 
   #message:focus {
-    border-color: #4659e8; 
-    box-shadow: 0 0 0 3px rgba(232, 218, 232, 0.941); 
+    border-color: #6a11cb; 
+    box-shadow: 0 0 0 3px rgba(106, 17, 203, 0.2); 
   }
 
   button.send-btn {
     padding: 10px 24px;
-    background-color: #581ce6;
-    background: linear-gradient(135deg, #6737d8 0%, #b8bcc1 100%); 
+    background-color: #6a11cb; 
     color: white;
     border: none;
     border-radius: 24px; 
@@ -240,9 +197,10 @@
 
   button.send-btn:hover {
     background-color: #1d4ed8;
-    box-shadow: 0 4px 8px rgba(243, 238, 238, 0.938); 
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 
   }
 
+  /* মেসেজ ডিজাইন */
   .message-wrapper {
     display: flex;
     width: 100%;
@@ -255,12 +213,12 @@
   }
 
   .user-message {
-    background: linear-gradient(135deg, #6737d8 0%, #b8bcc1 100%); 
+    background-color: #2575fc; 
     color: white;
     padding: 12px 16px;
     border-radius: 18px 18px 4px 18px;
     margin-left: auto;
-    max-width: 70%;
+    max-width: 75%;
     word-wrap: break-word;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); 
   }
@@ -271,50 +229,9 @@
     padding: 12px 16px;
     border-radius: 18px 18px 18px 4px;
     margin-right: auto;
-    max-width: 75%;
+    max-width: 80%;
     word-wrap: break-word;
     border: 1px solid #e0e7ff; 
-  }
-
-  .typing-indicator {
-    background-color: #e0e0e0; 
-    color: #555;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    width: fit-content; 
-    padding: 12px 16px; 
-    border-radius: 18px 18px 18px 4px; 
-    margin-right: auto; 
-    box-shadow: none; 
-    border: 1px solid #d1d5db; 
-  }
-
-  .typing-indicator span {
-    width: 8px;
-    height: 8px;
-    background-color: #888;
-    border-radius: 50%;
-    animation: bounce 1.4s infinite ease-in-out both;
-  }
-
-  .typing-indicator span:nth-child(1) {
-    animation-delay: -0.32s;
-  }
-
-  .typing-indicator span:nth-child(2) {
-    animation-delay: -0.16s;
-  }
-
-  @keyframes bounce {
-    0%, 80%, 100% {
-      transform: scale(0);
-      opacity: 0.7;
-    }
-    40% {
-      transform: scale(1);
-      opacity: 1;
-    }
   }
 
   @media (max-width: 768px) {
@@ -324,12 +241,11 @@
     
     .main-layout {
       display: flex; 
-      width: 100%; 
-      height: 100dvh; 
+      width: 100%; /* 100vw এর বদলে 100% দেওয়া হলো দাগ দূর করার জন্য */
+      height: 100dvh; /* স্ক্রিন নিচে চলে যাওয়া আটকাবে */
       border-radius: 0; 
       border: none;
       position: relative;
-      overflow: hidden; 
     }
 
     .history-sidebar {
@@ -340,27 +256,12 @@
       width: 260px;
       z-index: 1000; 
       transition: left 0.3s ease; 
-      box-shadow: 4px 0 15px rgba(236, 230, 230, 0.963);
+      box-shadow: 4px 0 15px rgba(0,0,0,0.5);
       border-right: none;
-      max-height: 100%;
-    }
-
-    .sidebar-overlay.active {
-      display: block;
-      opacity: 1;
     }
 
     .history-sidebar.open {
       left: 0; 
-    }
-
-    .chat-container {
-      width: 100%;
-    }
-
-    #chat {
-      padding: 16px;
-      gap: 12px;
     }
 
     header {
@@ -381,12 +282,12 @@
     }
 
     .input-area {
-      padding: 12px;
-      padding-bottom: env(safe-area-inset-bottom, 12px);
+      padding: 12px; 
+      padding-bottom: 20px; /* মোবাইলের নিচে একটু গ্যাপ দেওয়া হলো */
     }
 
     .chat-watermark img {
-      width: 200px;
+      width: 260px; /* মোবাইলে লোগো সাইজ পারফেক্ট করা হলো */
     }
   }
 </style>
@@ -394,23 +295,17 @@
 
 <body>
 
-<div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
-
 <div class="main-layout">
   
-  <!-- Sidebar -->
   <div class="history-sidebar" id="sidebar">
     <div class="sidebar-header">
       <h3>History</h3>
       <button class="close-btn" onclick="toggleSidebar()">✖</button>
     </div>
-    <div id="history-list">
-      <!-- History items will be loaded here -->
-    </div>
+    <div id="history-list"></div>
     <button id="clear-history">Clear History</button>
   </div>
 
-  <!-- Chat Area -->
   <div class="chat-container">
 
     <header>
@@ -419,17 +314,16 @@
       <div class="system-status" id="status-tag">SYSTEM READY</div>
     </header>
 
-    <!-- Watermark Logo -->
     <div class="chat-watermark">
       <img src="logo.png" alt="Skarl Logo">
     </div>
 
-    <div id="chat">
-    </div>
+    <div id="chat"></div>
 
     <div class="input-area">
       <input id="message" placeholder="Ask something...">
-      <button class="send-btn" onclick="sendMessage()">Send</button>
+      <!-- এখানে কীবোর্ড বারবার খোলার সমস্যার একটি কুইক ফিক্স দেওয়া হয়েছে -->
+      <button class="send-btn" onclick="sendMessage(); document.getElementById('message').blur();">Send</button>
     </div>
 
   </div>
@@ -438,9 +332,7 @@
 <script>
   function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('overlay');
     sidebar.classList.toggle('open');
-    overlay.classList.toggle('active');
   }
 </script>
 
