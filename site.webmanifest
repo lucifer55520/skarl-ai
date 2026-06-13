@@ -1,0 +1,21 @@
+{
+  "name": "Skarl.sbs",
+  "short_name": "Skarl",
+  "icons": [
+    {
+      "src": "/https://skarl.sbs/?hl=en-IN/web-app-manifest-192x192.png?v=20260613",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/https://skarl.sbs/?hl=en-IN/web-app-manifest-512x512.png?v=20260613",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff",
+  "display": "standalone"
+}
