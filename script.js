@@ -10,14 +10,13 @@ function appendMessage(text, sender, isError = false) {
     const wrapper = document.createElement("div");
     wrapper.className = "message-wrapper";
 
-    const iconClass = sender === "user" ? "fa-user" : "fa-robot";
     const div = document.createElement("div");
     div.className = sender === "user" ? "user-message" : "ai-message";
-    
+
     if (isError) {
         div.classList.add("error-message");
     }
-    
+
     div.innerText = text;
 
     wrapper.appendChild(div);
@@ -109,11 +108,6 @@ function loadThreadIntoChat(index){
 
     renderSidebar();
 
-    // On mobile, close sidebar after selecting a chat
-    if (window.innerWidth <= 768) {
-        const sidebar = document.getElementById('sidebar');
-        if (sidebar) sidebar.classList.remove('open');
-    }
 }
 
 
@@ -338,37 +332,6 @@ document.addEventListener(
             sendMessage();
 
         }
-
-    // Swipe gesture support for mobile sidebar
-    let touchStartX = 0;
-    let touchEndX = 0;
-
-    function handleSwipe() {
-        const swipeThreshold = 80;
-        const sidebar = document.getElementById('sidebar');
-        if (!sidebar || window.innerWidth > 768) return;
-        
-        const isOpen = sidebar.classList.contains('open');
-        const diff = touchEndX - touchStartX;
-
-        // Swipe right from the left edge (0-50px) to open sidebar
-        if (diff > swipeThreshold && touchStartX < 50 && !isOpen) {
-            toggleSidebar();
-        } 
-        // Swipe left from anywhere to close sidebar if it's open
-        else if (diff < -swipeThreshold && isOpen) {
-            toggleSidebar();
-        }
-    }
-
-    document.addEventListener('touchstart', e => {
-        touchStartX = e.changedTouches[0].screenX;
-    }, { passive: true });
-
-    document.addEventListener('touchend', e => {
-        touchEndX = e.changedTouches[0].screenX;
-        handleSwipe();
-    }, { passive: true });
 
     });
 
