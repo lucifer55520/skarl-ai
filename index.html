@@ -4,7 +4,6 @@
 <title>Skarl AI</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <style>
-  /* একদম পারফেক্ট ফিটিংয়ের জন্য বেসিক রিসেট */
   * {
     box-sizing: border-box;
     margin: 0;
@@ -21,8 +20,8 @@
     display: flex; 
     justify-content: center;
     align-items: center;
-    height: 100dvh; /* 100vh এর বদলে 100dvh ব্যবহার করা হয়েছে যাতে নিচে না নেমে যায় */
-    overflow: hidden; /* বডির স্ক্রলিং পুরোপুরি বন্ধ করা হলো */
+    height: 100dvh; 
+    overflow: hidden; 
     color: #cbd5e1; 
   }
 
@@ -67,8 +66,9 @@
     flex-grow: 1; 
   }
 
+  /* 🌟 চ্যাটের ব্যাকগ্রাউন্ড ছবির রঙের সাথে ম্যাচ করা হয়েছে */
   .chat-container {
-    background: #ffffff; 
+    background: #a5d7f5; /* ছবির আকাশী নীল রঙ */
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -121,7 +121,7 @@
     font-weight: 600;
   }
 
-  /* Watermark CSS - লোগোর ব্যাকগ্রাউন্ড মুছে ফেলার ম্যাজিক আপডেট করা হলো */
+  /* 🌟 লোগোর চারপাশের বক্স গায়েব করার ম্যাজিক */
   .chat-watermark {
     position: absolute;
     top: 50%;
@@ -137,10 +137,8 @@
 
   .chat-watermark img {
     width: 350px; 
-    /* color-burn এবং multiply একত্রে ব্যাকগ্রাউন্ডকে জাদুর মতো মুছে দেবে */
-    mix-blend-mode: darken; 
-    filter: grayscale(100%) contrast(1.5); 
-    opacity: 0.12; 
+    mix-blend-mode: darken; /* ছবির নীল ব্যাকগ্রাউন্ড গায়েব করে শুধু লেখাটি রাখবে */
+    opacity: 0.35; /* জলছাপের মতো হালকা করে দেওয়া হলো */
   }
 
   #chat {
@@ -159,7 +157,7 @@
 
   .input-area {
     padding: 16px 20px;
-    background: #ffffff;
+    background: #ffffff; /* টাইপ করার জায়গাটি সাদার ওপর রাখা হয়েছে যেন স্পষ্ট বোঝা যায় */
     border-top: 1px solid #e5e7eb;
     display: flex; 
     gap: 12px;
@@ -200,7 +198,6 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 
   }
 
-  /* মেসেজ ডিজাইন */
   .message-wrapper {
     display: flex;
     width: 100%;
@@ -241,8 +238,8 @@
     
     .main-layout {
       display: flex; 
-      width: 100%; /* 100vw এর বদলে 100% দেওয়া হলো দাগ দূর করার জন্য */
-      height: 100dvh; /* স্ক্রিন নিচে চলে যাওয়া আটকাবে */
+      width: 100%; 
+      height: 100dvh; 
       border-radius: 0; 
       border: none;
       position: relative;
@@ -283,11 +280,11 @@
 
     .input-area {
       padding: 12px; 
-      padding-bottom: 20px; /* মোবাইলের নিচে একটু গ্যাপ দেওয়া হলো */
+      padding-bottom: 20px; 
     }
 
     .chat-watermark img {
-      width: 260px; /* মোবাইলে লোগো সাইজ পারফেক্ট করা হলো */
+      width: 260px; 
     }
   }
 </style>
@@ -322,7 +319,6 @@
 
     <div class="input-area">
       <input id="message" placeholder="Ask something...">
-      <!-- এখানে কীবোর্ড বারবার খোলার সমস্যার একটি কুইক ফিক্স দেওয়া হয়েছে -->
       <button class="send-btn" onclick="sendMessage(); document.getElementById('message').blur();">Send</button>
     </div>
 
