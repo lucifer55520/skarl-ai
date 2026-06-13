@@ -1,4 +1,4 @@
-let conversationThreads = [];
+let conversationThreads = []; // 🌟 Typo fixed ('Let' থেকে 'let' করা হয়েছে)
 let activeThreadIndex = -1;
 
 const API_URL = "https://suryabiswas018-skarl-ai.hf.space/chat";
@@ -55,14 +55,37 @@ function loadThreadIntoChat(index){
         appendMessage(msg.text, msg.sender);
     });
     renderSidebar();
+    
+    // 🌟 মোবাইল ভার্সনে চ্যাট সিলেক্ট করার পর সাইডবার অটোমেটিক বন্ধ হয়ে যাবে
+    if (window.innerWidth <= 768) {
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar.classList.contains('open')) {
+            sidebar.classList.remove('open');
+        }
+    }
 }
 
-// 🌟 ব্রাউজারের অ্যালার্ট বন্ধ করে আমাদের নতুন মডাল ওপেন করার ফাংশন
+// 🌟 নতুন চ্যাট শুরু করার ফাংশন যোগ করা হলো
+function startNewChat() {
+    activeThreadIndex = -1; 
+    document.getElementById("chat").innerHTML = ""; 
+    renderSidebar(); 
+    
+    // মোবাইল ভার্সনে নতুন চ্যাট শুরু করলে সাইডবার বন্ধ হয়ে যাবে
+    if (window.innerWidth <= 768) {
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar.classList.contains('open')) {
+            sidebar.classList.remove('open');
+        }
+    }
+}
+
+// ব্রাউজারের অ্যালার্ট বন্ধ করে আমাদের নতুন মডাল ওপেন করার ফাংশন
 function clearHistory(){
     document.getElementById('custom-confirm').classList.add('active');
 }
 
-// 🌟 পপ-আপের "Delete" বাটনে ক্লিক করলে হিস্ট্রি মুছবে
+// পপ-আপের "Delete" বাটনে ক্লিক করলে হিস্ট্রি মুছবে
 function confirmClear(){
     conversationThreads = [];
     activeThreadIndex = -1;
@@ -99,11 +122,21 @@ async function sendMessage(){
     input.value = "";
     const typing = appendMessage("Thinking...", "ai");
 
+    // 🌟 এআই যেন আগের কথা মনে রাখতে পারে, তাই আগের মেসেজগুলো সার্ভারে পাঠানোর ব্যবস্থা
+    const currentThread = conversationThreads[activeThreadIndex].messages;
+    const historyForApi = currentThread.slice(0, -1).map(msg => ({
+        role: msg.sender === "user" ? "user" : "assistant",
+        content: msg.text
+    }));
+
     try{
         const response = await fetch(API_URL, {
             method: "POST",
             headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({ message: userText })
+            body: JSON.stringify({ 
+                message: userText,
+                history: historyForApi // 🌟 হিস্ট্রি সার্ভারে পাঠানো হচ্ছে
+            })
         });
         const data = await response.json();
         typing.remove();
@@ -125,12 +158,15 @@ async function sendMessage(){
         console.error(error);
     }
     input.disabled = false;
+    
+    // মেসেজ পাঠানোর পর আবার লেখার জন্য ইনপুট বক্সে ফোকাস ফিরে আসবে
+    input.focus();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
     loadThreads();
     const input = document.getElementById("message");
-    
+
     input.addEventListener("keypress", (event) => {
         if(event.key === "Enter"){
             event.preventDefault();
