@@ -55,7 +55,7 @@ function loadThreadIntoChat(index){
         appendMessage(msg.text, msg.sender);
     });
     renderSidebar();
-    
+
     // 🌟 মোবাইল ভার্সনে চ্যাট সিলেক্ট করার পর সাইডবার অটোমেটিক বন্ধ হয়ে যাবে
     if (window.innerWidth <= 768) {
         const sidebar = document.getElementById('sidebar');
@@ -70,7 +70,7 @@ function startNewChat() {
     activeThreadIndex = -1; 
     document.getElementById("chat").innerHTML = ""; 
     renderSidebar(); 
-    
+
     // মোবাইল ভার্সনে নতুন চ্যাট শুরু করলে সাইডবার বন্ধ হয়ে যাবে
     if (window.innerWidth <= 768) {
         const sidebar = document.getElementById('sidebar');
@@ -158,9 +158,11 @@ async function sendMessage(){
         console.error(error);
     }
     input.disabled = false;
-    
-    // মেসেজ পাঠানোর পর আবার লেখার জন্য ইনপুট বক্সে ফোকাস ফিরে আসবে
-    input.focus();
+
+    // 🌟 Keyboard fix: Only focus on desktop, not on mobile
+    if (window.innerWidth > 768) {
+        input.focus();
+    }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
