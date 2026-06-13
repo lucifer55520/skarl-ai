@@ -32,6 +32,21 @@
     border: 1px solid #e2e9f4;
   }
 
+  /* Overlay for mobile sidebar */
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+    z-index: 999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
   .history-sidebar {
     background-color: #252429; 
     color: #cbd5e1; 
@@ -309,8 +324,8 @@
     
     .main-layout {
       display: flex; 
-      width: 100vw; 
-      height: 100vh; 
+      width: 100%; 
+      height: 100dvh; 
       border-radius: 0; 
       border: none;
       position: relative;
@@ -330,12 +345,22 @@
       max-height: 100%;
     }
 
+    .sidebar-overlay.active {
+      display: block;
+      opacity: 1;
+    }
+
     .history-sidebar.open {
       left: 0; 
     }
 
     .chat-container {
       width: 100%;
+    }
+
+    #chat {
+      padding: 16px;
+      gap: 12px;
     }
 
     header {
@@ -356,7 +381,8 @@
     }
 
     .input-area {
-      padding: 12px; 
+      padding: 12px;
+      padding-bottom: env(safe-area-inset-bottom, 12px);
     }
 
     .chat-watermark img {
@@ -367,6 +393,8 @@
 </head>
 
 <body>
+
+<div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
 
 <div class="main-layout">
   
@@ -410,7 +438,9 @@
 <script>
   function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
     sidebar.classList.toggle('open');
+    overlay.classList.toggle('active');
   }
 </script>
 
