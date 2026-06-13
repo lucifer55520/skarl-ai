@@ -1,18 +1,58 @@
-let conversationThreads = []; // 🌟 Typo fixed ('Let' থেকে 'let' করা হয়েছে)
+let conversationThreads = []; 
 let activeThreadIndex = -1;
+let selectedImageBase64 = null; // 🌟 আপলোড করা ছবি স্টোর করে রাখার জন্য নতুন ভেরিয়েবল
 
 const API_URL = "https://suryabiswas018-skarl-ai.hf.space/chat";
 
-function appendMessage(text, sender, isError = false) {
+// 🌟 ছবি আপলোড হলে সেটি স্ক্রিনে দেখানোর লজিক
+document.getElementById('image-upload')?.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        selectedImageBase64 = event.target.result;
+        document.getElementById('preview-container').style.display = 'block';
+        document.getElementById('image-preview').src = selectedImageBase64;
+    };
+    reader.readAsDataURL(file);
+});
+
+// 🌟 আপলোড করা ছবি ক্যানসেল (X) করার ফাংশন
+function removeImage() {
+    selectedImageBase64 = null;
+    const uploadInput = document.getElementById('image-upload');
+    if (uploadInput) uploadInput.value = "";
+    document.getElementById('preview-container').style.display = 'none';
+}
+
+// 🌟 চ্যাটে ছবি ও টেক্সট দেখানোর জন্য আপডেটেড appendMessage ফাংশন
+function appendMessage(text, sender, isError = false, imgSrc = null) {
     const chat = document.getElementById("chat");
     const wrapper = document.createElement("div");
     wrapper.className = "message-wrapper";
     const div = document.createElement("div");
     div.className = sender === "user" ? "user-message" : "ai-message";
+    
     if (isError) {
         div.classList.add("error-message");
     }
-    div.innerText = text;
+
+    // 🌟 ইউজারের মেসেজে যদি ছবি থাকে, তবে তা চ্যাট বক্সে দেখাবে
+    if (imgSrc && sender === "user") {
+        const img = document.createElement("img");
+        img.src = imgSrc;
+        img.className = "user-img-msg";
+        div.appendChild(img);
+    }
+    
+    // টেক্সট বসানো
+    if (text) {
+        const textSpan = document.createElement("span");
+        textSpan.innerText = text;
+        div.appendChild(textSpan);
+    }
+
     wrapper.appendChild(div);
     chat.appendChild(wrapper);
     chat.scrollTop = chat.scrollHeight;
@@ -52,11 +92,11 @@ function loadThreadIntoChat(index){
     const chat = document.getElementById("chat");
     chat.innerHTML = "";
     conversationThreads[index].messages.forEach(msg => {
-        appendMessage(msg.text, msg.sender);
+        // 🌟 পুরনো চ্যাট লোড করার সময় ছবিও দেখাবে
+        appendMessage(msg.text, msg.sender, false, msg.image);
     });
     renderSidebar();
 
-    // 🌟 মোবাইল ভার্সনে চ্যাট সিলেক্ট করার পর সাইডবার অটোমেটিক বন্ধ হয়ে যাবে
     if (window.innerWidth <= 768) {
         const sidebar = document.getElementById('sidebar');
         if (sidebar.classList.contains('open')) {
@@ -65,13 +105,11 @@ function loadThreadIntoChat(index){
     }
 }
 
-// 🌟 নতুন চ্যাট শুরু করার ফাংশন যোগ করা হলো
 function startNewChat() {
     activeThreadIndex = -1; 
     document.getElementById("chat").innerHTML = ""; 
     renderSidebar(); 
 
-    // মোবাইল ভার্সনে নতুন চ্যাট শুরু করলে সাইডবার বন্ধ হয়ে যাবে
     if (window.innerWidth <= 768) {
         const sidebar = document.getElementById('sidebar');
         if (sidebar.classList.contains('open')) {
@@ -80,26 +118,27 @@ function startNewChat() {
     }
 }
 
-// ব্রাউজারের অ্যালার্ট বন্ধ করে আমাদের নতুন মডাল ওপেন করার ফাংশন
 function clearHistory(){
     document.getElementById('custom-confirm').classList.add('active');
 }
 
-// পপ-আপের "Delete" বাটনে ক্লিক করলে হিস্ট্রি মুছবে
 function confirmClear(){
     conversationThreads = [];
     activeThreadIndex = -1;
     localStorage.removeItem("skyAiConversationThreads");
     document.getElementById("chat").innerHTML = "";
     renderSidebar();
-    closeModal(); // কাজ শেষে মডাল বন্ধ করে দেবে
+    closeModal(); 
 }
 
 async function sendMessage(){
     const input = document.getElementById("message");
-    const userText = input.value.trim();
+    let userText = input.value.trim();
 
-    if(!userText || input.disabled){
+    // 🌟 যদি ইউজার শুধু ছবি সিলেক্ট করে কিন্তু কিছু না লেখে, তবে ডিফল্ট টেক্সট পাঠাবে
+    if(!userText && selectedImageBase64) {
+        userText = "Please analyze this image and explain what you see.";
+    } else if(!userText || input.disabled){
         return;
     }
 
@@ -107,22 +146,28 @@ async function sendMessage(){
 
     if(activeThreadIndex === -1){
         conversationThreads.push({
-            title: userText.substring(0,25),
+            title: userText.substring(0,25) || "Image Analysis",
             messages: []
         });
         activeThreadIndex = conversationThreads.length - 1;
     }
 
-    appendMessage(userText, "user");
+    // 🌟 ইউজারের চ্যাটবক্সে ছবি ও মেসেজ শো করানো
+    appendMessage(userText, "user", false, selectedImageBase64);
+    
+    // হিস্ট্রিতে স্টোর করা
     conversationThreads[activeThreadIndex].messages.push({
         text: userText,
-        sender: "user"
+        sender: "user",
+        image: selectedImageBase64 // 🌟 লোকাল স্টোরেজে ছবি সেভ করা হচ্ছে
     });
 
+    const imageToSend = selectedImageBase64; // এপিআইতে পাঠানোর জন্য ভেরিয়েবলে রাখা
     input.value = "";
+    removeImage(); // ছবি পাঠানোর পর প্রিভিউ থেকে ডিলিট করে দেওয়া
+
     const typing = appendMessage("Thinking...", "ai");
 
-    // 🌟 এআই যেন আগের কথা মনে রাখতে পারে, তাই আগের মেসেজগুলো সার্ভারে পাঠানোর ব্যবস্থা
     const currentThread = conversationThreads[activeThreadIndex].messages;
     const historyForApi = currentThread.slice(0, -1).map(msg => ({
         role: msg.sender === "user" ? "user" : "assistant",
@@ -135,7 +180,8 @@ async function sendMessage(){
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({ 
                 message: userText,
-                history: historyForApi // 🌟 হিস্ট্রি সার্ভারে পাঠানো হচ্ছে
+                history: historyForApi,
+                image: imageToSend // 🌟 ছবি সার্ভারে পাঠানো হচ্ছে
             })
         });
         const data = await response.json();
@@ -157,9 +203,10 @@ async function sendMessage(){
         appendMessage("Connection error: " + error.message, "ai", true);
         console.error(error);
     }
+    
     input.disabled = false;
 
-    // 🌟 Keyboard fix: Only focus on desktop, not on mobile
+    // Keyboard fix
     if (window.innerWidth > 768) {
         input.focus();
     }
