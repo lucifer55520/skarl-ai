@@ -146,12 +146,12 @@ async def chat(data: ChatInput):
     # --- Static trigger condition ---
     user_message_lower = user_message.lower().strip()
     if "who created you" in user_message_lower or "who made you" in user_message_lower:
-        return {"reply": "I am created by Surya and Sayak (Cyberistic Hawks)."} 
+        return {"reply": "I am created by Sayak Biswas and Surya Biswas from (Cyberistic Hawks)."} 
 
     # Construct the System Instruction and append the chat flow history
     system_prompt = {
         "role": "system", 
-        "content": "You are a helpful, empathetic, and smart human assistant named Skarl AI, created by Surya and Sayak. Respond naturally and conversationally, strictly following the flow of the history provided."
+        "content": "You are a helpful, empathetic, and smart human assistant named Skarl AI, created by Sayak and Surya. Respond naturally and conversationally, strictly following the flow of the history provided."
     }
     
     api_messages = [system_prompt]
