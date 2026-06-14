@@ -1,14 +1,78 @@
 let conversationThreads = []; 
 let activeThreadIndex = -1;
-let selectedImageBase64 = null; // 🌟 আপলোড করা ছবি স্টোর করে রাখার জন্য নতুন ভেরিয়েবল
+let selectedImageBase64 = null; 
 
 const API_URL = "https://suryabiswas018-skarl-ai.hf.space/chat";
 
-// 🌟 ছবি আপলোড হলে সেটি স্ক্রিনে দেখানোর লজিক
+// ==========================================
+// 🌟 USER AUTHENTICATION & PROFILE LOGIC
+// ==========================================
+
+function getInitials(name) {
+    let initials = name.trim().split(/\s+/).map(word => word[0]).join('');
+    return initials.substring(0, 2).toUpperCase();
+}
+
+window.onload = function() {
+    let savedUser = localStorage.getItem("skarl_user");
+    
+    if (savedUser) {
+        document.getElementById("login-modal").style.display = "none";
+        document.getElementById("system-ready-badge").style.display = "none";
+        
+        let icon = document.getElementById("user-profile-icon");
+        if(icon) {
+            icon.innerText = getInitials(savedUser);
+            icon.style.display = "flex"; 
+        }
+    }
+};
+
+function handleLogin() {
+    let user = document.getElementById("login-user").value.trim();
+    let pass = document.getElementById("login-pass").value.trim();
+
+    if (user === "" || pass === "") {
+        alert("Please enter both username and password!");
+        return;
+    }
+
+    localStorage.setItem("skarl_user", user);
+    localStorage.setItem("skarl_pass", pass);
+
+    document.getElementById("login-modal").style.display = "none";
+    document.getElementById("system-ready-badge").style.display = "none";
+    
+    let icon = document.getElementById("user-profile-icon");
+    if(icon) {
+        icon.innerText = getInitials(user);
+        icon.style.display = "flex";
+    }
+}
+
+function toggleProfile() {
+    let dropdown = document.getElementById("profile-dropdown");
+    if(dropdown) {
+        document.getElementById("disp-user").innerText = localStorage.getItem("skarl_user");
+        document.getElementById("disp-pass").innerText = localStorage.getItem("skarl_pass");
+        dropdown.classList.toggle("hidden");
+    }
+}
+
+function logout() {
+    localStorage.removeItem("skarl_user");
+    localStorage.removeItem("skarl_pass");
+    location.reload(); 
+}
+
+// ==========================================
+// 🌟 CHAT & IMAGE UPLOAD LOGIC
+// ==========================================
+
 document.getElementById('image-upload')?.addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (!file) return;
-    
+
     const reader = new FileReader();
     reader.onload = function(event) {
         selectedImageBase64 = event.target.result;
@@ -18,7 +82,6 @@ document.getElementById('image-upload')?.addEventListener('change', function(e) 
     reader.readAsDataURL(file);
 });
 
-// 🌟 আপলোড করা ছবি ক্যানসেল (X) করার ফাংশন
 function removeImage() {
     selectedImageBase64 = null;
     const uploadInput = document.getElementById('image-upload');
@@ -26,30 +89,32 @@ function removeImage() {
     document.getElementById('preview-container').style.display = 'none';
 }
 
-// 🌟 চ্যাটে ছবি ও টেক্সট দেখানোর জন্য আপডেটেড appendMessage ফাংশন
 function appendMessage(text, sender, isError = false, imgSrc = null) {
     const chat = document.getElementById("chat");
     const wrapper = document.createElement("div");
     wrapper.className = "message-wrapper";
     const div = document.createElement("div");
     div.className = sender === "user" ? "user-message" : "ai-message";
-    
+
     if (isError) {
         div.classList.add("error-message");
     }
 
-    // 🌟 ইউজারের মেসেজে যদি ছবি থাকে, তবে তা চ্যাট বক্সে দেখাবে
     if (imgSrc && sender === "user") {
         const img = document.createElement("img");
         img.src = imgSrc;
         img.className = "user-img-msg";
         div.appendChild(img);
     }
-    
-    // টেক্সট বসানো
+
     if (text) {
+        // 🌟 Markdown formatting support (Bold and Italic)
+        let formattedText = text
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>');
+            
         const textSpan = document.createElement("span");
-        textSpan.innerText = text;
+        textSpan.innerHTML = formattedText;
         div.appendChild(textSpan);
     }
 
@@ -92,7 +157,6 @@ function loadThreadIntoChat(index){
     const chat = document.getElementById("chat");
     chat.innerHTML = "";
     conversationThreads[index].messages.forEach(msg => {
-        // 🌟 পুরনো চ্যাট লোড করার সময় ছবিও দেখাবে
         appendMessage(msg.text, msg.sender, false, msg.image);
     });
     renderSidebar();
@@ -135,7 +199,6 @@ async function sendMessage(){
     const input = document.getElementById("message");
     let userText = input.value.trim();
 
-    // 🌟 যদি ইউজার শুধু ছবি সিলেক্ট করে কিন্তু কিছু না লেখে, তবে ডিফল্ট টেক্সট পাঠাবে
     if(!userText && selectedImageBase64) {
         userText = "Please analyze this image and explain what you see.";
     } else if(!userText || input.disabled){
@@ -152,19 +215,17 @@ async function sendMessage(){
         activeThreadIndex = conversationThreads.length - 1;
     }
 
-    // 🌟 ইউজারের চ্যাটবক্সে ছবি ও মেসেজ শো করানো
     appendMessage(userText, "user", false, selectedImageBase64);
-    
-    // হিস্ট্রিতে স্টোর করা
+
     conversationThreads[activeThreadIndex].messages.push({
         text: userText,
         sender: "user",
-        image: selectedImageBase64 // 🌟 লোকাল স্টোরেজে ছবি সেভ করা হচ্ছে
+        image: selectedImageBase64 
     });
 
-    const imageToSend = selectedImageBase64; // এপিআইতে পাঠানোর জন্য ভেরিয়েবলে রাখা
+    const imageToSend = selectedImageBase64; 
     input.value = "";
-    removeImage(); // ছবি পাঠানোর পর প্রিভিউ থেকে ডিলিট করে দেওয়া
+    removeImage(); 
 
     const typing = appendMessage("Thinking...", "ai");
 
@@ -181,7 +242,7 @@ async function sendMessage(){
             body: JSON.stringify({ 
                 message: userText,
                 history: historyForApi,
-                image: imageToSend // 🌟 ছবি সার্ভারে পাঠানো হচ্ছে
+                image: imageToSend 
             })
         });
         const data = await response.json();
@@ -203,10 +264,9 @@ async function sendMessage(){
         appendMessage("Connection error: " + error.message, "ai", true);
         console.error(error);
     }
-    
+
     input.disabled = false;
 
-    // Keyboard fix
     if (window.innerWidth > 768) {
         input.focus();
     }
@@ -216,13 +276,15 @@ document.addEventListener("DOMContentLoaded", () => {
     loadThreads();
     const input = document.getElementById("message");
 
-    input.addEventListener("keypress", (event) => {
-        if(event.key === "Enter"){
-            event.preventDefault();
-            sendMessage();
-            input.blur(); 
-        }
-    });
+    if(input) {
+        input.addEventListener("keypress", (event) => {
+            if(event.key === "Enter"){
+                event.preventDefault();
+                sendMessage();
+                input.blur(); 
+            }
+        });
+    }
 
     const clearBtn = document.getElementById("clear-history");
     if(clearBtn){
