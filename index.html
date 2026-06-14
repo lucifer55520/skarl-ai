@@ -4,7 +4,7 @@
 <title>Skarl AI</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-<meta name="description" content="Skarl AI - Advanced Personal AI Assistant created by Sayak Biswas and  Surya Biswas.">
+<meta name="description" content="Skarl AI - Advanced Personal AI Assistant created by Sayak Biswas and Surya Biswas.">
 <meta name="keywords" content="Skarl AI, Skarl, AI Chatbot, Artificial Intelligence, Sayak Biswas, Surya Biswas, Skarl.sbs">
 <meta name="author" content="Sayak Biswas, Surya Biswas">
 
@@ -72,7 +72,6 @@
     font-size: 1rem;
   }
 
-  /* 🌟 New Chat Button Styling */
   #new-chat-btn {
     width: 100%;
     padding: 12px;
@@ -185,6 +184,20 @@
     color: #cbd5e1;
   }
 
+  header h2 {
+    color: white; 
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+
+  /* 🌟 Header Right Section */
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
   .system-status {
     font-size: 0.7rem;
     font-family: 'JetBrains Mono', 'Courier New', monospace;
@@ -195,11 +208,144 @@
     border: 1px solid rgba(74, 222, 128, 0.3);
   }
 
-  header h2 {
-    color: white; 
-    margin: 0;
-    font-size: 1.25rem;
+  /* 🌟 Dynamic Initials User Icon */
+  #user-profile-icon {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #ffffff;
+    cursor: pointer;
+    background: #64748b; 
+    width: 38px;
+    height: 38px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    transition: background 0.2s, transform 0.2s;
+    letter-spacing: 0.5px;
+    user-select: none;
+    border: 2px solid transparent;
+  }
+
+  #user-profile-icon:hover {
+    background: #475569;
+    transform: scale(1.05);
+    border: 2px solid #cbd5e1;
+  }
+
+  /* 🌟 Profile Dropdown */
+  #profile-dropdown {
+    position: absolute;
+    top: 60px;
+    right: 16px;
+    background: #1e293b;
+    color: white;
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0px 10px 25px rgba(0,0,0,0.5);
+    z-index: 1000;
+    min-width: 220px;
+    border: 1px solid #334155;
+  }
+
+  #profile-dropdown h4 {
+    margin-bottom: 12px;
+    border-bottom: 1px solid #334155;
+    padding-bottom: 8px;
+    font-size: 1rem;
+    color: #f8fafc;
+  }
+
+  #profile-dropdown p {
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+    color: #cbd5e1;
+  }
+
+  .logout-btn {
+    width: 100%;
+    padding: 8px;
+    margin-top: 10px;
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 6px;
+    cursor: pointer;
     font-weight: 600;
+    transition: background 0.2s;
+  }
+
+  .logout-btn:hover {
+    background: rgba(239, 68, 68, 0.2);
+  }
+
+  .hidden {
+    display: none !important;
+  }
+
+  /* 🌟 Login Modal Styles */
+  #login-modal {
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(5px);
+    z-index: 10000;
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .login-box {
+    background: #1e293b;
+    padding: 30px 25px;
+    border-radius: 12px;
+    text-align: center;
+    color: white;
+    width: 90%;
+    max-width: 340px;
+    box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.5);
+    border: 1px solid #334155;
+    animation: popIn 0.3s ease-out forwards;
+  }
+
+  .login-box h2 {
+    margin-bottom: 20px;
+    color: #f8fafc;
+  }
+
+  .login-box input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border: 1px solid #475569;
+    background: #0f172a;
+    color: white;
+    outline: none;
+    font-size: 0.95rem;
+  }
+
+  .login-box input:focus {
+    border-color: #6a11cb;
+  }
+
+  .login-box button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 5px;
+    background: linear-gradient(135deg, #6a11cb, #2563eb);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .login-box button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(106, 17, 203, 0.3);
   }
 
   .chat-watermark {
@@ -234,8 +380,7 @@
     scrollbar-width: thin;
     scrollbar-color: #d1d5db transparent;
   }
-  
-  /* 🌟 Image Preview Styling */
+
   .preview-container {
     display: none;
     padding: 10px 20px;
@@ -244,18 +389,18 @@
     position: relative;
     z-index: 10;
   }
-  
+
   .preview-box {
     position: relative;
     display: inline-block;
   }
-  
+
   .preview-box img {
     height: 60px;
     border-radius: 8px;
     border: 2px solid #cbd5e1;
   }
-  
+
   .remove-img-btn {
     position: absolute;
     top: -8px;
@@ -283,8 +428,7 @@
     position: relative;
     z-index: 10;
   }
-  
-  /* 🌟 Upload Button Styling */
+
   .upload-btn {
     background: #f1f5f9;
     color: #475569;
@@ -370,8 +514,7 @@
     border: 1px solid rgba(0, 0, 0, 0.02);
     line-height: 1.5;
   }
-  
-  /* 🌟 চ্যাটে ছবি দেখানোর স্টাইল */
+
   .user-img-msg {
     max-width: 200px;
     border-radius: 8px;
@@ -507,7 +650,7 @@
       display: block; 
     }
 
-    .system-status {
+    .header-right {
       margin-left: auto; 
     }
 
@@ -550,7 +693,22 @@
     <header>
       <button class="menu-btn" onclick="toggleSidebar()">☰</button>
       <h2>Skarl AI</h2>
-      <div class="system-status" id="status-tag">SYSTEM READY</div>
+      
+      <!-- 🌟 Updated Header Right Section -->
+      <div class="header-right">
+        <div class="system-status" id="system-ready-badge">SYSTEM READY</div>
+        
+        <!-- Dynamic Initials User Logo (Hidden initially) -->
+        <div id="user-profile-icon" style="display: none;" onclick="toggleProfile()"></div>
+        
+        <!-- Profile Dropdown -->
+        <div id="profile-dropdown" class="hidden">
+            <h4>User Credentials</h4>
+            <p><strong>Username:</strong> <span id="disp-user"></span></p>
+            <p><strong>Password:</strong> <span id="disp-pass"></span></p>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+      </div>
     </header>
 
     <div class="chat-watermark">
@@ -558,7 +716,7 @@
     </div>
 
     <div id="chat"></div>
-    
+
     <div class="preview-container" id="preview-container">
       <div class="preview-box">
         <img id="image-preview" src="" alt="Selected Image">
@@ -569,11 +727,21 @@
     <div class="input-area">
       <button class="upload-btn" onclick="document.getElementById('image-upload').click()">📎</button>
       <input type="file" id="image-upload" accept="image/*" style="display: none;">
-      
+
       <input id="message" placeholder="Ask something...">
       <button class="send-btn" onclick="sendMessage(); document.getElementById('message').blur();">Send</button>
     </div>
 
+  </div>
+</div>
+
+<!-- 🌟 Login Modal -->
+<div id="login-modal" class="modal-overlay">
+  <div class="login-box">
+    <h2>Skarl AI Login</h2>
+    <input type="text" id="login-user" placeholder="Enter Username" required>
+    <input type="password" id="login-pass" placeholder="Enter Password" required>
+    <button onclick="handleLogin()">Login to System</button>
   </div>
 </div>
 
