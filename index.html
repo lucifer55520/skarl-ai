@@ -125,6 +125,10 @@
   .input-wrapper { display: flex; flex-grow: 1; background: #f4f4f5; border-radius: 30px; align-items: center; padding: 4px 12px; border: 1px solid #e5e7eb; }
   .voice-input-btn { background: transparent; color: #6b7280; border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 1.4rem; }
   .voice-input-btn:hover { background: #f3f4f6; color: #111; }
+  .voice-input-btn svg { width: 22px; height: 22px; }
+  .voice-input-btn .stop-icon { display: none; }
+  .voice-input-btn.listening .mic-icon { display: none; }
+  .voice-input-btn.listening .stop-icon { display: block; }
   .voice-input-btn.listening { color: #ef4444; animation: pulse 1s infinite; }
 
   #message { flex-grow: 1; background: transparent; border: none; outline: none; padding: 12px 8px; font-size: 1rem; color: #111; }
@@ -218,7 +222,17 @@
     <div class="input-area">
       <button class="upload-btn" onclick="document.getElementById('image-upload').click()">📎</button>
       <input type="file" id="image-upload" accept="image/*" style="display: none;">
-      <button class="voice-input-btn" id="voice-input-btn">🎤</button>
+      <button class="voice-input-btn" id="voice-input-btn">
+        <svg class="mic-icon" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="10" width="3" height="4" rx="1.5" />
+          <rect x="8" y="7" width="3" height="10" rx="1.5" />
+          <rect x="13" y="4" width="3" height="16" rx="1.5" />
+          <rect x="18" y="8" width="3" height="8" rx="1.5" />
+        </svg>
+        <svg class="stop-icon" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <rect x="6" y="6" width="12" height="12" rx="2" />
+        </svg>
+      </button>
 
       <div class="input-wrapper">
          <input id="message" placeholder="Ask anything...">
