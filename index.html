@@ -169,7 +169,7 @@
     z-index: 10; 
   }
 
-  .menu-btn, .close-btn {
+  .menu-btn {
     display: none;
     background: none;
     border: none;
@@ -177,11 +177,6 @@
     font-size: 1.5rem;
     cursor: pointer;
     padding: 0;
-  }
-
-  .close-btn {
-    font-size: 1.2rem;
-    color: #cbd5e1;
   }
 
   header h2 {
@@ -646,7 +641,7 @@
       gap: 15px;
     }
 
-    .menu-btn, .close-btn {
+    .menu-btn {
       display: block; 
     }
 
@@ -677,7 +672,6 @@
   <div class="history-sidebar" id="sidebar">
     <div class="sidebar-header">
       <h3>History</h3>
-      <button class="close-btn" onclick="toggleSidebar()">✖</button>
     </div>
 
     <div style="width: 100%; display: block; clear: both; position: relative; z-index: 1010;">
@@ -693,15 +687,12 @@
     <header>
       <button class="menu-btn" onclick="toggleSidebar()">☰</button>
       <h2>Skarl AI</h2>
-      
-      <!-- 🌟 Updated Header Right Section -->
+
       <div class="header-right">
         <div class="system-status" id="system-ready-badge">SYSTEM READY</div>
-        
-        <!-- Dynamic Initials User Logo (Hidden initially) -->
+
         <div id="user-profile-icon" style="display: none;" onclick="toggleProfile()"></div>
-        
-        <!-- Profile Dropdown -->
+
         <div id="profile-dropdown" class="hidden">
             <h4>User Credentials</h4>
             <p><strong>Username:</strong> <span id="disp-user"></span></p>
@@ -735,7 +726,6 @@
   </div>
 </div>
 
-<!-- 🌟 Login Modal -->
 <div id="login-modal" class="modal-overlay">
   <div class="login-box">
     <h2>Skarl AI Login</h2>
