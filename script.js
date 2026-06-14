@@ -293,39 +293,52 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ==========================================
-// 🌟 SWIPE & CLICK OUTSIDE TO CLOSE SIDEBAR
+// 🌟 SWIPE TO OPEN/CLOSE & CLICK OUTSIDE (Light Theme Updated)
 // ==========================================
-let touchStartX = 0;
-let touchEndX = 0;
+document.addEventListener("DOMContentLoaded", () => {
+    const sidebarElement = document.getElementById('sidebar');
+    const menuButton = document.querySelector('.menu-btn');
+    let startX = 0;
 
-const sidebarElement = document.getElementById('sidebar');
-const menuButton = document.querySelector('.menu-btn');
+    // ১. বাইরে ক্লিক করলে বন্ধ হবে
+    document.addEventListener('click', function(event) {
+        if (sidebarElement && sidebarElement.classList.contains('open')) {
+            if (!sidebarElement.contains(event.target) && (!menuButton || !menuButton.contains(event.target))) {
+                sidebarElement.classList.remove('open');
+            }
+        }
+    });
 
-// ১. বাইরে ক্লিক করলে সাইডবার বন্ধ করার লজিক
-document.addEventListener('click', function(event) {
-    if (sidebarElement && sidebarElement.classList.contains('open')) {
-        // ক্লিক যদি সাইডবার বা মেনু বাটনের ভেতরে না হয়, তবেই বন্ধ হবে
-        if (!sidebarElement.contains(event.target) && (!menuButton || !menuButton.contains(event.target))) {
-            sidebarElement.classList.remove('open');
+    // ২. Swipe Left (Close) এবং Swipe Right (Open) লজিক
+    function handleSwipeEnd(endX) {
+        if (!sidebarElement) return;
+
+        // যদি মেনু খোলা থাকে এবং ডান থেকে বামে স্লাইড করা হয় (Close)
+        if (sidebarElement.classList.contains('open')) {
+            if (startX - endX > 50) { 
+                sidebarElement.classList.remove('open');
+            }
+        } 
+        // যদি মেনু বন্ধ থাকে এবং স্ক্রিনের একদম বাঁ-দিক থেকে ডান দিকে স্লাইড করা হয় (Open)
+        else {
+            // startX < 40 মানে হলো ইউজার স্ক্রিনের একদম বাঁ-দিকের কিনারা থেকে স্লাইড শুরু করেছে
+            if (endX - startX > 50 && startX < 40) {
+                sidebarElement.classList.add('open');
+            }
         }
     }
+
+    // মোবাইলের টাচ
+    document.addEventListener('touchstart', e => { startX = e.changedTouches[0].screenX; }, {passive: true});
+    document.addEventListener('touchend', e => { handleSwipeEnd(e.changedTouches[0].screenX); });
+
+    // পিসির মাউস
+    document.addEventListener('mousedown', e => { startX = e.screenX; });
+    document.addEventListener('mouseup', e => { handleSwipeEnd(e.screenX); });
 });
 
-// ২. হাত দিয়ে স্লাইড (Swipe Left) করলে সাইডবার বন্ধ করার লজিক
-document.addEventListener('touchstart', e => {
-    touchStartX = e.changedTouches[0].screenX;
-});
-
-document.addEventListener('touchend', e => {
-    touchEndX = e.changedTouches[0].screenX;
-    handleSwipe();
-});
-
-function handleSwipe() {
-    if (sidebarElement && sidebarElement.classList.contains('open')) {
-        // যদি ইউজার ডান থেকে বাম দিকে অন্তত ৫০ পিক্সেল স্লাইড করে
-        if (touchStartX - touchEndX > 50) {
-            sidebarElement.classList.remove('open');
-        }
-    }
+// মেনু বাটন দিয়ে খোলার জন্য (ম্যানুয়াল ক্লিক)
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) sidebar.classList.toggle('open');
 }
