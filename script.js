@@ -6,6 +6,10 @@ let contextMenuThreadIndex = -1;
 let longPressTimer;
 let isLongPress = false;
 
+// Global variables for speech recognition
+let recognition;
+let isListening = false;
+
 const API_URL = "https://suryabiswas018-skarl-ai.hf.space/chat";
 
 function getInitials(name) {
@@ -201,99 +205,145 @@ function confirmClear(){
     document.getElementById("chat").innerHTML = ""; renderSidebar(); closeModal(); 
 }
 
-async function sendMessage(){
-    const input = document.getElementById("message"); let userText = input.value.trim();
-    if(!userText && selectedImageBase64) { userText = "Please analyze this image and explain what you see."; } else if(!userText || input.disabled){ return; }
-    input.disabled = true;
+// Function to initialize and start speech recognition
+function startVoiceInput() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        alert("Your browser does not support Web Speech API. Please use Google Chrome.");
+        return;
+    }
 
-    if(activeThreadIndex === -1){
-        conversationThreads.push({ 
-            title: userText.substring(0,25) || "Image Analysis", 
+    if (isListening) {
+        stopVoiceInput();
+        return;
+    }
+
+    recognition = new SpeechRecognition();
+    recognition.continuous = false; // Listen for a single utterance
+    recognition.interimResults = true; // Get results while speaking
+    recognition.lang = 'en-US'; // Set language
+
+    const messageInput = document.getElementById('message');
+    const voiceInputBtn = document.getElementById('voice-input-btn');
+
+    recognition.onstart = function() {
+        isListening = true;
+        voiceInputBtn.classList.add('listening');
+        messageInput.placeholder = "Listening...";
+        console.log("Voice recognition started.");
+    };
+
+    recognition.onresult = function(event) {
+        let interimTranscript = '';
+        let finalTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+                finalTranscript += event.results[i][0].transcript;
+            } else {
+                interimTranscript += event.results[i][0].transcript;
+            }
+        }
+        messageInput.value = finalTranscript || interimTranscript;
+    };
+
+    recognition.onerror = function(event) {
+        console.error("Speech recognition error:", event.error);
+        isListening = false;
+        voiceInputBtn.classList.remove('listening');
+        messageInput.placeholder = "Ask anything...";
+        alert("Speech recognition error: " + event.error);
+    };
+
+    recognition.onend = function() {
+        isListening = false;
+        voiceInputBtn.classList.remove('listening');
+        messageInput.placeholder = "Ask anything...";
+        console.log("Voice recognition ended.");
+        // If there's final text, send it automatically
+        if (messageInput.value.trim() !== "") {
+            sendMessage();
+        }
+    };
+
+    recognition.start();
+}
+
+// Function to stop speech recognition
+function stopVoiceInput() {
+    if (recognition && isListening) {
+        recognition.stop();
+        isListening = false;
+        document.getElementById('voice-input-btn').classList.remove('listening');
+        document.getElementById('message').placeholder = "Ask anything...";
+        console.log("Voice recognition stopped.");
+    }
+}
+
+async function sendMessage() {
+    stopVoiceInput();
+    const input = document.getElementById("message");
+    let userText = input.value.trim();
+
+    if (!userText && !selectedImageBase64) return;
+    
+    if (!userText && selectedImageBase64) {
+        userText = "Please analyze this image and explain what you see.";
+    }
+
+    const currentImg = selectedImageBase64;
+    input.value = "";
+    removeImage();
+
+    // Add user message to chat UI
+    appendMessage(userText, "user", false, currentImg);
+
+    // Create a new thread if none is active
+    if (activeThreadIndex === -1) {
+        conversationThreads.unshift({
+            title: userText.substring(0, 30) + (userText.length > 30 ? "..." : ""),
             messages: [],
             isPinned: false
         });
-        activeThreadIndex = conversationThreads.length - 1;
+        activeThreadIndex = 0;
     }
 
-    appendMessage(userText, "user", false, selectedImageBase64);
-    conversationThreads[activeThreadIndex].messages.push({ text: userText, sender: "user", image: selectedImageBase64 });
+    const thread = conversationThreads[activeThreadIndex];
+    const history = thread.messages.map(m => ({
+        role: m.sender === "user" ? "user" : "assistant",
+        content: m.text
+    }));
 
-    const imageToSend = selectedImageBase64; input.value = ""; removeImage(); 
-    const typing = appendMessage("Thinking...", "ai");
+    thread.messages.push({ text: userText, sender: "user", image: currentImg });
+    saveThreads();
 
-    const currentThread = conversationThreads[activeThreadIndex].messages;
-    const historyForApi = currentThread.slice(0, -1).map(msg => ({ role: msg.sender === "user" ? "user" : "assistant", content: msg.text }));
+    // Placeholder for AI response
+    const aiWrapper = appendMessage("Thinking...", "ai");
+    const aiTextContainer = aiWrapper.querySelector(".ai-message div");
 
-    try{
+    try {
         const response = await fetch(API_URL, {
-            method: "POST", headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({ message: userText, history: historyForApi, image: imageToSend })
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: userText, history: history })
         });
-        const data = await response.json(); typing.remove();
-        if(!response.ok) throw new Error(data.detail || "Server error");
-        appendMessage(data.reply, "ai");
-        conversationThreads[activeThreadIndex].messages.push({ text: data.reply, sender: "ai" });
+
+        if (!response.ok) throw new Error("Failed to connect to Skarl AI.");
+        
+        const data = await response.json();
+        aiTextContainer.innerHTML = marked.parse(data.reply);
+        thread.messages.push({ text: data.reply, sender: "ai" });
         saveThreads();
+    } catch (error) {
+        aiTextContainer.innerText = "Connection Error: " + error.message;
+        aiTextContainer.classList.add("error-message");
     }
-    catch(error){ typing.remove(); appendMessage("Connection error: " + error.message, "ai", true); console.error(error); }
-    input.disabled = false;
-    if (window.innerWidth > 768) input.focus();
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-    loadThreads();
-    const input = document.getElementById("message");
-    if(input) { input.addEventListener("keypress", (event) => { if(event.key === "Enter"){ event.preventDefault(); sendMessage(); input.blur(); }}); }
-    const clearBtn = document.getElementById("clear-history"); if(clearBtn) clearBtn.onclick = clearHistory;
-
-    const pinBtn = document.getElementById("btn-pin-menu");
-    if (pinBtn) {
-        pinBtn.onclick = () => {
-            if (contextMenuThreadIndex > -1) {
-                conversationThreads[contextMenuThreadIndex].isPinned = !conversationThreads[contextMenuThreadIndex].isPinned;
-                document.getElementById("thread-context-menu").style.display = "none";
-                saveThreads();
-            }
-        };
+// Add event listener to the new voice input button
+document.addEventListener('DOMContentLoaded', () => {
+    const voiceInputBtn = document.getElementById('voice-input-btn');
+    if (voiceInputBtn) {
+        voiceInputBtn.addEventListener('click', startVoiceInput);
     }
-
-    const deleteBtn = document.getElementById("btn-delete-menu");
-    if (deleteBtn) {
-        deleteBtn.onclick = () => {
-            if (contextMenuThreadIndex > -1) {
-                if (contextMenuThreadIndex === activeThreadIndex) startNewChat(); 
-                conversationThreads.splice(contextMenuThreadIndex, 1); 
-                
-                if (contextMenuThreadIndex < activeThreadIndex) activeThreadIndex--;
-                else if (contextMenuThreadIndex === activeThreadIndex) activeThreadIndex = -1;
-                
-                document.getElementById("thread-context-menu").style.display = "none";
-                saveThreads();
-            }
-        };
-    }
-
-    const sidebar = document.getElementById('sidebar');
-    const menuBtn = document.querySelector('.menu-btn');
-    const contextMenu = document.getElementById("thread-context-menu");
-    let touchStartX = 0; let touchEndX = 0;
-
-    document.addEventListener('click', (e) => {
-        if (contextMenu && contextMenu.style.display === "flex") {
-            if (!contextMenu.contains(e.target)) contextMenu.style.display = "none";
-        }
-        if (window.innerWidth <= 768 && sidebar && sidebar.classList.contains('open')) {
-            if (!sidebar.contains(e.target) && (!menuBtn || !menuBtn.contains(e.target))) sidebar.classList.remove('open');
-        }
-    });
-
-    document.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, {passive: true});
-    document.addEventListener('touchend', e => {
-        touchEndX = e.changedTouches[0].screenX;
-        if (window.innerWidth <= 768 && sidebar) {
-            let swipeDistance = touchStartX - touchEndX;
-            if (swipeDistance > 50 && sidebar.classList.contains('open')) sidebar.classList.remove('open');
-            else if (swipeDistance < -50 && touchStartX < 100 && !sidebar.classList.contains('open')) sidebar.classList.add('open');
-        }
-    }, {passive: true});
 });
