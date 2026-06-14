@@ -53,7 +53,7 @@ async function handleLogin() {
         let icon = document.getElementById("user-profile-icon");
         if(icon) { icon.innerText = getInitials(email); icon.style.display = "flex"; }
     } catch (error) {
-        alert("Login Error: " + error.message);
+        alert("Login Failed: " + error.message);
     }
 }
 
