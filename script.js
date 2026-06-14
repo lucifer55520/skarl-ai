@@ -2,16 +2,11 @@ let conversationThreads = [];
 let activeThreadIndex = -1;
 let selectedImageBase64 = null; 
 
-// 🌟 Context Menu Variables
 let contextMenuThreadIndex = -1;
 let longPressTimer;
 let isLongPress = false;
 
 const API_URL = "https://suryabiswas018-skarl-ai.hf.space/chat";
-
-// ==========================================
-// 🌟 USER AUTHENTICATION & PROFILE LOGIC
-// ==========================================
 
 function getInitials(name) {
     let initials = name.trim().split(/\s+/).map(word => word[0]).join('');
@@ -66,10 +61,6 @@ function closeModal() {
     if(confirmModal) confirmModal.classList.remove('active');
 }
 
-// ==========================================
-// 🌟 CHAT & IMAGE UPLOAD LOGIC
-// ==========================================
-
 document.getElementById('image-upload')?.addEventListener('change', function(e) {
     const file = e.target.files[0]; if (!file) return;
     const reader = new FileReader();
@@ -88,21 +79,35 @@ function removeImage() {
     document.getElementById('preview-container').style.display = 'none';
 }
 
+// 🌟 MARKDOWN PARSER IMPLEMENTED HERE
 function appendMessage(text, sender, isError = false, imgSrc = null) {
     const chat = document.getElementById("chat");
     const wrapper = document.createElement("div");
     wrapper.className = "message-wrapper";
+    
     const div = document.createElement("div");
     div.className = sender === "user" ? "user-message" : "ai-message";
     if (isError) div.classList.add("error-message");
+    
     if (imgSrc && sender === "user") {
         const img = document.createElement("img");
         img.src = imgSrc; img.className = "user-img-msg"; div.appendChild(img);
     }
+    
     if (text) {
-        let formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>');
-        const textSpan = document.createElement("span"); textSpan.innerHTML = formattedText; div.appendChild(textSpan);
+        const textContainer = document.createElement("div");
+        
+        if (sender === "ai" && !isError) {
+            // এআই এর উত্তরের জন্য Markdown Parser ব্যবহার করা হলো
+            textContainer.innerHTML = marked.parse(text);
+        } else {
+            // ইউজারের মেসেজ বা সিম্পল এরর এর জন্য নরমাল ব্রেক (<br>)
+            textContainer.innerHTML = text.replace(/\n/g, '<br>');
+        }
+        
+        div.appendChild(textContainer);
     }
+    
     wrapper.appendChild(div); chat.appendChild(wrapper); chat.scrollTop = chat.scrollHeight; return wrapper;
 }
 
@@ -116,13 +121,9 @@ function loadThreads() {
     if (stored) { conversationThreads = JSON.parse(stored); renderSidebar(); }
 }
 
-// ==========================================
-// 🌟 RENDER SIDEBAR & LONG PRESS LOGIC
-// ==========================================
 function renderSidebar() {
     const list = document.getElementById("history-list"); if (!list) return; list.innerHTML = "";
     
-    // Sort logic to bring pinned chats to top
     let currentActiveThread = activeThreadIndex >= 0 ? conversationThreads[activeThreadIndex] : null;
     
     conversationThreads.sort((a, b) => {
@@ -142,19 +143,16 @@ function renderSidebar() {
         
         item.innerText = thread.title || "Untitled Chat";
 
-        // Normal Click
         item.onclick = (e) => {
             if (isLongPress) { e.preventDefault(); return; }
             loadThreadIntoChat(index);
         };
 
-        // Desktop Right Click
         item.oncontextmenu = (e) => {
             e.preventDefault();
             showContextMenu(e.clientX, e.clientY, index);
         };
 
-        // Mobile Long Press
         item.ontouchstart = (e) => {
             isLongPress = false;
             longPressTimer = setTimeout(() => {
@@ -203,9 +201,6 @@ function confirmClear(){
     document.getElementById("chat").innerHTML = ""; renderSidebar(); closeModal(); 
 }
 
-// ==========================================
-// 🌟 MESSAGE SENDING LOGIC
-// ==========================================
 async function sendMessage(){
     const input = document.getElementById("message"); let userText = input.value.trim();
     if(!userText && selectedImageBase64) { userText = "Please analyze this image and explain what you see."; } else if(!userText || input.disabled){ return; }
@@ -245,16 +240,12 @@ async function sendMessage(){
     if (window.innerWidth > 768) input.focus();
 }
 
-// ==========================================
-// 🌟 ALL DOM EVENTS (Click Outside, Pin/Delete, Swipe)
-// ==========================================
 document.addEventListener("DOMContentLoaded", () => {
     loadThreads();
     const input = document.getElementById("message");
     if(input) { input.addEventListener("keypress", (event) => { if(event.key === "Enter"){ event.preventDefault(); sendMessage(); input.blur(); }}); }
     const clearBtn = document.getElementById("clear-history"); if(clearBtn) clearBtn.onclick = clearHistory;
 
-    // PIN AND DELETE BUTTON ACTIONS
     const pinBtn = document.getElementById("btn-pin-menu");
     if (pinBtn) {
         pinBtn.onclick = () => {
@@ -282,7 +273,6 @@ document.addEventListener("DOMContentLoaded", () => {
         };
     }
 
-    // SWIPE & CLICK OUTSIDE LOGIC
     const sidebar = document.getElementById('sidebar');
     const menuBtn = document.querySelector('.menu-btn');
     const contextMenu = document.getElementById("thread-context-menu");
