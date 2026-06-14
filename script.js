@@ -352,6 +352,17 @@ document.addEventListener('DOMContentLoaded', () => {
         voiceInputBtn.addEventListener('click', startVoiceInput);
     }
 
+    const messageInput = document.getElementById('message');
+    if (messageInput) {
+        messageInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                sendMessage();
+                messageInput.blur();
+            }
+        });
+    }
+
     // Swipe gesture detection for the history sidebar
     document.addEventListener('touchstart', e => {
         touchStartX = e.changedTouches[0].screenX;
