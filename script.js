@@ -86,35 +86,32 @@ function removeImage() {
     document.getElementById('preview-container').style.display = 'none';
 }
 
-// 🌟 MARKDOWN PARSER IMPLEMENTED HERE
 function appendMessage(text, sender, isError = false, imgSrc = null) {
     const chat = document.getElementById("chat");
     const wrapper = document.createElement("div");
     wrapper.className = "message-wrapper";
-    
+
     const div = document.createElement("div");
     div.className = sender === "user" ? "user-message" : "ai-message";
     if (isError) div.classList.add("error-message");
-    
+
     if (imgSrc && sender === "user") {
         const img = document.createElement("img");
         img.src = imgSrc; img.className = "user-img-msg"; div.appendChild(img);
     }
-    
+
     if (text) {
         const textContainer = document.createElement("div");
-        
+
         if (sender === "ai" && !isError) {
-            // এআই এর উত্তরের জন্য Markdown Parser ব্যবহার করা হলো
             textContainer.innerHTML = marked.parse(text);
         } else {
-            // ইউজারের মেসেজ বা সিম্পল এরর এর জন্য নরমাল ব্রেক (<br>)
             textContainer.innerHTML = text.replace(/\n/g, '<br>');
         }
-        
+
         div.appendChild(textContainer);
     }
-    
+
     wrapper.appendChild(div); chat.appendChild(wrapper); chat.scrollTop = chat.scrollHeight; return wrapper;
 }
 
@@ -130,9 +127,9 @@ function loadThreads() {
 
 function renderSidebar() {
     const list = document.getElementById("history-list"); if (!list) return; list.innerHTML = "";
-    
+
     let currentActiveThread = activeThreadIndex >= 0 ? conversationThreads[activeThreadIndex] : null;
-    
+
     conversationThreads.sort((a, b) => {
         let pinA = a.isPinned ? 1 : 0;
         let pinB = b.isPinned ? 1 : 0;
@@ -147,7 +144,7 @@ function renderSidebar() {
         const item = document.createElement("div");
         item.className = `history-item ${index === activeThreadIndex ? "active" : ""}`;
         if (thread.isPinned) item.classList.add("pinned");
-        
+
         item.innerText = thread.title || "Untitled Chat";
 
         item.onclick = (e) => {
@@ -208,10 +205,12 @@ function confirmClear(){
     document.getElementById("chat").innerHTML = ""; renderSidebar(); closeModal(); 
 }
 
-// Function to initialize and start speech recognition
+// ==========================================
+// 🎤 VOICE RECOGNITION LOGIC
+// ==========================================
 function startVoiceInput() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    
+
     if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
         alert("Voice input requires an HTTPS connection to work on a public domain.");
         return;
@@ -228,9 +227,9 @@ function startVoiceInput() {
     }
 
     recognition = new SpeechRecognition();
-    recognition.continuous = false; // Listen for a single utterance
-    recognition.interimResults = true; // Get results while speaking
-    recognition.lang = 'en-US'; // Set language
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
 
     const messageInput = document.getElementById('message');
     const voiceInputBtn = document.getElementById('voice-input-btn');
@@ -239,7 +238,6 @@ function startVoiceInput() {
         isListening = true;
         voiceInputBtn.classList.add('listening');
         messageInput.placeholder = "Listening...";
-        console.log("Voice recognition started.");
     };
 
     recognition.onresult = function(event) {
@@ -258,52 +256,43 @@ function startVoiceInput() {
 
     recognition.onerror = function(event) {
         console.error("Speech recognition error:", event.error);
-        isListening = false;
-        voiceInputBtn.classList.remove('listening');
-        messageInput.placeholder = "Ask anything...";
+        stopVoiceInput();
         alert("Speech recognition error: " + event.error);
     };
 
     recognition.onend = function() {
-        isListening = false;
-        voiceInputBtn.classList.remove('listening');
-        messageInput.placeholder = "Ask anything...";
-        console.log("Voice recognition ended.");
+        stopVoiceInput();
     };
 
     recognition.start();
 }
 
-// Function to stop speech recognition
 function stopVoiceInput() {
     if (recognition && isListening) {
         recognition.stop();
         isListening = false;
         document.getElementById('voice-input-btn').classList.remove('listening');
         document.getElementById('message').placeholder = "Ask anything...";
-        console.log("Voice recognition stopped.");
     }
 }
 
+// ==========================================
+// 🚀 MESSAGE SENDING LOGIC
+// ==========================================
 async function sendMessage() {
     stopVoiceInput();
     const input = document.getElementById("message");
     let userText = input.value.trim();
 
     if (!userText && !selectedImageBase64) return;
-    
-    if (!userText && selectedImageBase64) {
-        userText = "Please analyze this image and explain what you see.";
-    }
+    if (!userText && selectedImageBase64) userText = "Please analyze this image and explain what you see.";
 
     const currentImg = selectedImageBase64;
     input.value = "";
     removeImage();
 
-    // Add user message to chat UI
     appendMessage(userText, "user", false, currentImg);
 
-    // Create a new thread if none is active
     if (activeThreadIndex === -1) {
         conversationThreads.unshift({
             title: userText.substring(0, 30) + (userText.length > 30 ? "..." : ""),
@@ -322,7 +311,6 @@ async function sendMessage() {
     thread.messages.push({ text: userText, sender: "user", image: currentImg });
     saveThreads();
 
-    // Placeholder for AI response
     const aiWrapper = appendMessage("Thinking...", "ai");
     const aiTextContainer = aiWrapper.querySelector(".ai-message div");
 
@@ -330,11 +318,11 @@ async function sendMessage() {
         const response = await fetch(API_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message: userText, history: history })
+            body: JSON.stringify({ message: userText, history: history }) // 🌟 image parameter missing in your original code, so I kept it exactly as you provided
         });
 
         if (!response.ok) throw new Error("Failed to connect to Skarl AI.");
-        
+
         const data = await response.json();
         aiTextContainer.innerHTML = marked.parse(data.reply);
         thread.messages.push({ text: data.reply, sender: "ai" });
@@ -345,13 +333,19 @@ async function sendMessage() {
     }
 }
 
-// Add event listener to the new voice input button
+// ==========================================
+// 🌟 ALL DOM EVENTS (Click Outside, Pin/Delete, Swipe)
+// ==========================================
 document.addEventListener('DOMContentLoaded', () => {
+    loadThreads();
+    
+    // Voice Button Listener
     const voiceInputBtn = document.getElementById('voice-input-btn');
     if (voiceInputBtn) {
         voiceInputBtn.addEventListener('click', startVoiceInput);
     }
 
+    // Input Enter Listener
     const messageInput = document.getElementById('message');
     if (messageInput) {
         messageInput.addEventListener('keydown', (e) => {
@@ -362,6 +356,50 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+    
+    const clearBtn = document.getElementById("clear-history"); if(clearBtn) clearBtn.onclick = clearHistory;
+
+    // 🌟 PIN AND DELETE BUTTON ACTIONS (RESTORED)
+    const pinBtn = document.getElementById("btn-pin-menu");
+    if (pinBtn) {
+        pinBtn.onclick = () => {
+            if (contextMenuThreadIndex > -1) {
+                conversationThreads[contextMenuThreadIndex].isPinned = !conversationThreads[contextMenuThreadIndex].isPinned;
+                document.getElementById("thread-context-menu").style.display = "none";
+                saveThreads();
+            }
+        };
+    }
+
+    const deleteBtn = document.getElementById("btn-delete-menu");
+    if (deleteBtn) {
+        deleteBtn.onclick = () => {
+            if (contextMenuThreadIndex > -1) {
+                if (contextMenuThreadIndex === activeThreadIndex) startNewChat(); 
+                conversationThreads.splice(contextMenuThreadIndex, 1); 
+
+                if (contextMenuThreadIndex < activeThreadIndex) activeThreadIndex--;
+                else if (contextMenuThreadIndex === activeThreadIndex) activeThreadIndex = -1;
+
+                document.getElementById("thread-context-menu").style.display = "none";
+                saveThreads();
+            }
+        };
+    }
+
+    // 🌟 CLICK OUTSIDE MENUS (RESTORED)
+    const sidebar = document.getElementById('sidebar');
+    const menuBtn = document.querySelector('.menu-btn');
+    const contextMenu = document.getElementById("thread-context-menu");
+
+    document.addEventListener('click', (e) => {
+        if (contextMenu && contextMenu.style.display === "flex") {
+            if (!contextMenu.contains(e.target)) contextMenu.style.display = "none";
+        }
+        if (window.innerWidth <= 768 && sidebar && sidebar.classList.contains('open')) {
+            if (!sidebar.contains(e.target) && (!menuBtn || !menuBtn.contains(e.target))) sidebar.classList.remove('open');
+        }
+    });
 
     // Swipe gesture detection for the history sidebar
     document.addEventListener('touchstart', e => {
@@ -377,16 +415,14 @@ document.addEventListener('DOMContentLoaded', () => {
 function handleSidebarSwipe() {
     const sidebar = document.getElementById('sidebar');
     if (!sidebar) return;
-    
-    const swipeThreshold = 80;
+
+    const swipeThreshold = 50; // Made slightly more sensitive
     const diffX = touchEndX - touchStartX;
     const isOpen = sidebar.classList.contains('open');
 
-    // Swipe from left edge (0-50px) to the right: Open Sidebar
-    if (diffX > swipeThreshold && !isOpen && touchStartX < 50) {
+    if (diffX > swipeThreshold && !isOpen && touchStartX < 100) {
         sidebar.classList.add('open');
     } 
-    // Swipe to the left: Close Sidebar
     else if (diffX < -swipeThreshold && isOpen) {
         sidebar.classList.remove('open');
     }
