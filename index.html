@@ -14,159 +14,97 @@
 <link rel="manifest" href="site.webmanifest">
 
 <style>
-  * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
     font-family: 'Inter', -apple-system, sans-serif;
     background-color: #ffffff; 
-    display: flex; 
-    justify-content: center;
-    align-items: center;
-    height: 100dvh; 
-    overflow: hidden; 
-    color: #111111; 
+    display: flex; justify-content: center; align-items: center;
+    height: 100dvh; overflow: hidden; color: #111111; 
   }
 
   .main-layout { 
-    display: grid;
-    grid-template-columns: 260px 1fr; 
-    width: 100vw;
-    max-width: 100%;
-    height: 100dvh;
-    background: #ffffff; 
-    overflow: hidden;
+    display: grid; grid-template-columns: 260px 1fr; 
+    width: 100vw; max-width: 100%; height: 100dvh;
+    background: #ffffff; overflow: hidden;
   }
 
-  /* 🌟 Light Sidebar */
+  /* 🌟 Dark Sidebar (History List) */
   .history-sidebar {
-    background-color: #f9f9f9; 
-    color: #333333; 
+    background-color: #111111; 
+    color: #ffffff; 
     padding: 20px 16px;
-    border-right: 1px solid #e5e5e5;
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
+    border-right: 1px solid #222222;
+    display: flex; flex-direction: column; overflow-y: auto;
   }
 
   .sidebar-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    display: flex; justify-content: space-between; align-items: center;
     margin-bottom: 20px;
   }
 
-  .sidebar-header h3 {
-    margin: 0;
-    color: #111111;
-    font-size: 1.1rem;
-    font-weight: 600;
-  }
+  .sidebar-header h3 { margin: 0; color: #ffffff; font-size: 1.1rem; font-weight: 600; }
 
   #new-chat-btn {
-    width: 100%;
-    padding: 12px;
-    margin-bottom: 20px;
-    background: #ffffff;
-    color: #333333;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 500;
-    font-size: 0.95rem;
-    transition: all 0.2s;
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 8px;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    width: 100%; padding: 12px; margin-bottom: 20px;
+    background: #222222; color: #ffffff; border: 1px solid #333333;
+    border-radius: 8px; cursor: pointer; font-weight: 500; font-size: 0.95rem;
+    transition: all 0.2s; display: flex; justify-content: flex-start; align-items: center; gap: 8px;
   }
+  #new-chat-btn:hover { background: #333333; }
 
-  #new-chat-btn:hover { background: #f3f4f6; }
-
-  #history-list { flex-grow: 1; overflow-y: auto; }
+  #history-list { flex-grow: 1; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #555 #111; }
 
   .history-item {
-    padding: 12px 15px; 
-    margin-bottom: 8px; 
-    background-color: transparent;
-    color: #4b5563; 
-    font-weight: 500; 
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 0.95rem; 
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    transition: background-color 0.2s;
+    padding: 12px 15px; margin-bottom: 8px; 
+    background-color: transparent; color: #d1d5db; 
+    font-weight: 500; border-radius: 8px; cursor: pointer; font-size: 0.95rem; 
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    transition: all 0.2s; border: 1px solid transparent;
   }
-
-  .history-item:hover { background-color: #e5e7eb; color: #111111; }
-  .history-item.active { background-color: #e5e7eb; color: #111111; font-weight: 600; }
-
-  #clear-history {
-    width: 100%; padding: 12px; margin-top: 15px;
-    background-color: transparent; color: #ef4444; 
-    border: 1px solid transparent; border-radius: 8px;
-    cursor: pointer; font-weight: 500; font-size: 0.95rem;
-    transition: all 0.2s;
-  }
-  #clear-history:hover { background-color: #fee2e2; }
+  .history-item:hover { background-color: #222222; color: #ffffff; }
+  .history-item.active { background-color: #222222; color: #ffffff; border-color: #444; }
+  .history-item.pinned { border-left: 3px solid #6a11cb; } /* Pinned Indicator */
 
   /* 🌟 Clean Chat Container */
   .chat-container {
-    background: #ffffff; 
-    display: flex; flex-direction: column;
-    overflow: hidden; position: relative; 
-    width: 100%; height: 100%;
+    background: #ffffff; display: flex; flex-direction: column;
+    overflow: hidden; position: relative; width: 100%; height: 100%;
   }
 
   header {
-    padding: 16px 24px; background: #ffffff; 
-    border-bottom: 1px solid #e5e5e5; color: #111111;
-    display: flex; justify-content: space-between; align-items: center;
-    position: relative; z-index: 10; 
+    padding: 16px 24px; background: #ffffff; border-bottom: 1px solid #e5e5e5; color: #111111;
+    display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 10; 
   }
 
   .menu-btn {
-    display: none; background: none; border: none;
-    color: #333333; font-size: 1.5rem; cursor: pointer; padding: 0;
+    display: none; background: none; border: none; color: #333333; font-size: 1.5rem; cursor: pointer; padding: 0;
   }
 
   header h2 { color: #111111; margin: 0; font-size: 1.25rem; font-weight: 600; }
-
   .header-right { display: flex; align-items: center; gap: 12px; }
 
   .system-status {
-    font-size: 0.75rem; font-family: monospace;
-    background: #f0fdf4; color: #16a34a;
+    font-size: 0.75rem; font-family: monospace; background: #f0fdf4; color: #16a34a;
     padding: 4px 8px; border-radius: 6px; border: 1px solid #bbf7d0;
   }
 
   #user-profile-icon {
-    font-size: 0.95rem; font-weight: 600; color: #ffffff;
-    cursor: pointer; background: #6a11cb; 
-    width: 36px; height: 36px; display: flex;
-    justify-content: center; align-items: center;
+    font-size: 0.95rem; font-weight: 600; color: #ffffff; cursor: pointer; background: #6a11cb; 
+    width: 36px; height: 36px; display: flex; justify-content: center; align-items: center;
     border-radius: 50%; user-select: none;
   }
 
   #profile-dropdown {
-    position: absolute; top: 60px; right: 24px;
-    background: #ffffff; color: #333333; padding: 16px;
-    border-radius: 12px; box-shadow: 0px 10px 25px rgba(0,0,0,0.1);
-    z-index: 1000; min-width: 220px; border: 1px solid #e5e7eb;
+    position: absolute; top: 60px; right: 24px; background: #ffffff; color: #333333; padding: 16px;
+    border-radius: 12px; box-shadow: 0px 10px 25px rgba(0,0,0,0.1); z-index: 1000; min-width: 220px; border: 1px solid #e5e7eb;
   }
-
   #profile-dropdown h4 { margin-bottom: 12px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; }
   #profile-dropdown p { font-size: 0.85rem; margin-bottom: 8px; color: #4b5563; }
   .logout-btn { width: 100%; padding: 8px; margin-top: 10px; background: #fee2e2; color: #ef4444; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; }
   .hidden { display: none !important; }
 
-  /* 🌟 Fixed Overlay & Modals (Login + Clear History) */
+  /* 🌟 Fixed Overlay & Login Modal */
   .modal-overlay {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
     background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px);
@@ -174,77 +112,79 @@
   }
   .modal-overlay.active { display: flex; animation: fadeInModal 0.2s ease-out forwards; }
 
-  .login-box, .modal-box {
-    background: #ffffff; padding: 30px 24px; border-radius: 16px;
-    text-align: center; color: #333333; width: 90%; max-width: 340px;
-    box-shadow: 0px 15px 40px rgba(0, 0, 0, 0.15); border: 1px solid #e5e7eb;
+  .login-box {
+    background: #ffffff; padding: 30px 24px; border-radius: 16px; text-align: center; color: #333333; 
+    width: 90%; max-width: 340px; box-shadow: 0px 15px 40px rgba(0, 0, 0, 0.15); border: 1px solid #e5e7eb;
     transform: scale(0.9); animation: popIn 0.2s ease-out forwards;
   }
-
-  .login-box h2, .modal-box h3 { margin-bottom: 15px; color: #111111; font-weight: 600; }
-  .modal-box p { font-size: 0.95rem; color: #6b7280; margin-bottom: 24px; line-height: 1.5; }
-
+  .login-box h2 { margin-bottom: 15px; color: #111111; font-weight: 600; }
   .login-box input {
-    width: 100%; padding: 14px; margin-bottom: 15px; border-radius: 8px;
-    border: 1px solid #d1d5db; background: #f9fafb; outline: none; font-size: 1rem;
+    width: 100%; padding: 14px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #d1d5db; background: #f9fafb; outline: none; font-size: 1rem;
   }
   .login-box input:focus { border-color: #6a11cb; background: #ffffff; }
-
-  .modal-actions { display: flex; gap: 12px; }
-  .login-box button, .modal-actions button {
-    flex: 1; padding: 12px; border-radius: 8px; border: none;
-    font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: background 0.2s;
+  .login-box button {
+    background: #6a11cb; color: white; width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: 600; font-size: 0.95rem; cursor: pointer;
   }
 
-  .login-box button { background: #6a11cb; color: white; width: 100%; }
-  .btn-cancel { background: #f3f4f6; color: #4b5563; border: 1px solid #d1d5db;}
-  .btn-cancel:hover { background: #e5e7eb; }
-  .btn-delete { background: #ef4444; color: white; }
-  .btn-delete:hover { background: #dc2626; }
+  /* 🌟 Context Menu (Long Press Options) */
+  #thread-context-menu {
+    position: absolute; background: #ffffff; border: 1px solid #e5e7eb; box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    border-radius: 8px; display: none; flex-direction: column; z-index: 10000; min-width: 140px; overflow: hidden;
+  }
+  #thread-context-menu button {
+    background: transparent; border: none; padding: 12px 16px; text-align: left; cursor: pointer; font-size: 0.95rem; color: #111; font-weight: 500;
+  }
+  #thread-context-menu button:hover { background: #f3f4f6; }
+  #btn-delete-menu { color: #ef4444 !important; }
 
-  /* 🌟 Chat Area */
+  /* 🌟 Chat Area & Watermark Fix */
   .chat-watermark {
     position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
     z-index: 0; pointer-events: none; display: flex; justify-content: center; align-items: center; width: 100%;
   }
-  .chat-watermark img { width: 350px; mix-blend-mode: darken; opacity: 0.35; }
+  /* Logo Whitish Issue Fixed: Used multiply and lowered opacity so it looks like a clean stamp */
+  .chat-watermark img { width: 350px; mix-blend-mode: multiply; opacity: 0.15; filter: grayscale(100%); }
 
   #chat {
     flex-grow: 1; padding: 24px; overflow-y: auto; background-color: transparent; 
     position: relative; z-index: 1; display: flex; flex-direction: column; gap: 20px; scrollbar-width: thin;
   }
 
-  .input-area {
-    padding: 16px 20px; background: #ffffff; 
-    display: flex; gap: 12px; align-items: center; position: relative; z-index: 10;
+  /* Image Preview Box Fix */
+  .preview-container { display: none; padding: 10px 24px; background: #ffffff; position: relative; z-index: 10; }
+  .preview-box { position: relative; display: inline-block; }
+  .preview-box img { height: 60px; border-radius: 8px; border: 2px solid #e5e7eb; background: #f4f4f5; }
+  .remove-img-btn {
+    position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border: none;
+    border-radius: 50%; width: 22px; height: 22px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center;
   }
 
+  /* 🌟 Input Area Fix (Send Button Inside Pill) */
+  .input-area {
+    padding: 16px 24px; background: #ffffff; 
+    display: flex; gap: 12px; align-items: center; position: relative; z-index: 10;
+  }
   .upload-btn {
     background: transparent; color: #6b7280; border: none; border-radius: 50%;
-    width: 44px; height: 44px; display: flex; justify-content: center; align-items: center;
-    cursor: pointer; font-size: 1.4rem;
+    width: 44px; height: 44px; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 1.4rem;
   }
   .upload-btn:hover { background: #f3f4f6; color: #111; }
 
+  .input-wrapper {
+    display: flex; flex-grow: 1; background: #f4f4f5; border-radius: 30px; align-items: center; padding: 4px 12px; border: 1px solid #e5e7eb;
+  }
   #message {
-    flex-grow: 1; padding: 16px 24px; background: #f4f4f5; 
-    border: none; border-radius: 30px; outline: none; font-size: 1rem; color: #111;
+    flex-grow: 1; background: transparent; border: none; outline: none; padding: 12px 8px; font-size: 1rem; color: #111;
   }
-
+  /* Send Button is now Black */
   button.send-btn {
-    background: transparent; color: #2563eb; border: none;
-    cursor: pointer; font-weight: bold; font-size: 1.2rem; padding: 10px;
+    background: transparent; color: #111111; border: none; cursor: pointer; font-weight: bold; font-size: 1.2rem; padding: 8px; display: flex; align-items: center; justify-content: center; transition: transform 0.2s;
   }
+  button.send-btn:hover { transform: scale(1.1); }
 
   .message-wrapper { display: flex; width: 100%; animation: fadeIn 0.3s ease; }
-  .user-message {
-    background: #f3f4f6; color: #111111; padding: 14px 20px;
-    border-radius: 20px 20px 4px 20px; margin-left: auto; max-width: 75%; font-weight: 400;
-  }
-  .ai-message {
-    background-color: transparent; color: #111111; padding: 14px 0px;
-    margin-right: auto; max-width: 85%; line-height: 1.6;
-  }
+  .user-message { background: #f3f4f6; color: #111111; padding: 14px 20px; border-radius: 20px 20px 4px 20px; margin-left: auto; max-width: 75%; font-weight: 400; }
+  .ai-message { background-color: transparent; color: #111111; padding: 14px 0px; margin-right: auto; max-width: 85%; line-height: 1.6; }
   .user-img-msg { max-width: 200px; border-radius: 8px; margin-bottom: 8px; display: block; }
 
   @keyframes fadeInModal { from { opacity: 0; } to { opacity: 1; } }
@@ -256,7 +196,7 @@
     .main-layout { display: flex; position: relative; }
     .history-sidebar {
       position: absolute; left: -280px; top: 0; height: 100%; width: 280px;
-      z-index: 1000; transition: left 0.3s ease; box-shadow: 4px 0 15px rgba(0,0,0,0.05);
+      z-index: 1000; transition: left 0.3s ease; box-shadow: 4px 0 15px rgba(0,0,0,0.5);
     }
     .history-sidebar.open { left: 0; }
     header { justify-content: flex-start; gap: 15px; padding: 12px 16px; }
@@ -276,7 +216,6 @@
     </div>
     <button id="new-chat-btn" onclick="startNewChat()">➕ New Chat</button>
     <div id="history-list"></div>
-    <button id="clear-history">🗑️ Clear History</button>
   </div>
 
   <div class="chat-container">
@@ -284,7 +223,7 @@
       <button class="menu-btn" onclick="toggleSidebar()">☰</button>
       <h2>Skarl AI</h2>
       <div class="header-right">
-        <div class="system-status" id="system-ready-badge">SYSTEM READY</div>
+        <div class="system-status" id="system-ready-badge">READY</div>
         <div id="user-profile-icon" style="display: none;" onclick="toggleProfile()"></div>
         <div id="profile-dropdown" class="hidden">
             <h4>User Credentials</h4>
@@ -303,7 +242,7 @@
 
     <div class="preview-container" id="preview-container">
       <div class="preview-box">
-        <img id="image-preview" src="" alt="Selected Image">
+        <img id="image-preview" src="">
         <button class="remove-img-btn" onclick="removeImage()">✖</button>
       </div>
     </div>
@@ -311,8 +250,11 @@
     <div class="input-area">
       <button class="upload-btn" onclick="document.getElementById('image-upload').click()">📎</button>
       <input type="file" id="image-upload" accept="image/*" style="display: none;">
-      <input id="message" placeholder="Ask something...">
-      <button class="send-btn" onclick="sendMessage(); document.getElementById('message').blur();">➤</button>
+      
+      <div class="input-wrapper">
+         <input id="message" placeholder="Ask anything...">
+         <button class="send-btn" onclick="sendMessage(); document.getElementById('message').blur();">➤</button>
+      </div>
     </div>
   </div>
 </div>
@@ -326,26 +268,11 @@
   </div>
 </div>
 
-<div id="custom-confirm" class="modal-overlay">
-  <div class="modal-box">
-    <h3>Clear History?</h3>
-    <p>Are you sure you want to delete all conversations? This action cannot be undone.</p>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
-      <button class="btn-delete" onclick="confirmClear()">Delete</button>
-    </div>
-  </div>
+<!-- 🌟 Context Menu for Delete/Pin -->
+<div id="thread-context-menu">
+    <button id="btn-pin-menu">📌 Pin to Top</button>
+    <button id="btn-delete-menu">🗑️ Delete Chat</button>
 </div>
-
-<script>
-  function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    sidebar.classList.toggle('open');
-  }
-  function closeModal() {
-    document.getElementById('custom-confirm').classList.remove('active');
-  }
-</script>
 
 <script src="script.js"></script>
 </body>
