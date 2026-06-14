@@ -1,3 +1,5 @@
+import { auth, login, logout as firebaseLogout } from './auth.js';
+
 let conversationThreads = []; 
 let activeThreadIndex = -1;
 let selectedImageBase64 = null; 
@@ -32,16 +34,27 @@ window.onload = function() {
     }
 };
 
-function handleLogin() {
-    let user = document.getElementById("login-user").value.trim();
+async function handleLogin() {
+    let email = document.getElementById("login-user").value.trim();
     let pass = document.getElementById("login-pass").value.trim();
-    if (user === "" || pass === "") { alert("Please enter both username and password!"); return; }
-    localStorage.setItem("skarl_user", user);
-    localStorage.setItem("skarl_pass", pass);
-    document.getElementById("login-modal").style.display = "none";
-    document.getElementById("system-ready-badge").style.display = "none";
-    let icon = document.getElementById("user-profile-icon");
-    if(icon) { icon.innerText = getInitials(user); icon.style.display = "flex"; }
+    
+    if (email === "" || pass === "") { 
+        alert("Please enter both email and password!"); 
+        return; 
+    }
+
+    try {
+        await login(email, pass);
+        alert("Login Successful!");
+        localStorage.setItem("skarl_user", email);
+        localStorage.setItem("skarl_pass", pass);
+        document.getElementById("login-modal").style.display = "none";
+        document.getElementById("system-ready-badge").style.display = "none";
+        let icon = document.getElementById("user-profile-icon");
+        if(icon) { icon.innerText = getInitials(email); icon.style.display = "flex"; }
+    } catch (error) {
+        alert("Login Error: " + error.message);
+    }
 }
 
 function toggleProfile() {
@@ -53,8 +66,13 @@ function toggleProfile() {
     }
 }
 
-function logout() {
-    localStorage.removeItem("skarl_user"); localStorage.removeItem("skarl_pass"); location.reload(); 
+async function logout() {
+    try {
+        await firebaseLogout();
+        localStorage.removeItem("skarl_user"); localStorage.removeItem("skarl_pass"); location.reload(); 
+    } catch (error) {
+        console.error("Logout Error:", error.message);
+    }
 }
 
 function toggleSidebar() {
@@ -422,3 +440,15 @@ function handleSidebarSwipe() {
         sidebar.classList.remove('open');
     }
 }
+
+// Expose functions to global scope for HTML event attributes (onclick, etc.)
+window.handleLogin = handleLogin;
+window.logout = logout;
+window.toggleProfile = toggleProfile;
+window.toggleSidebar = toggleSidebar;
+window.startNewChat = startNewChat;
+window.clearHistory = clearHistory;
+window.confirmClear = confirmClear;
+window.removeImage = removeImage;
+window.closeModal = closeModal;
+window.startVoiceInput = startVoiceInput;
