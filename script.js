@@ -2,7 +2,16 @@ let conversationThreads = [];
 let activeThreadIndex = -1;
 let selectedImageBase64 = null; 
 
+// 🌟 Context Menu Variables
+let contextMenuThreadIndex = -1;
+let longPressTimer;
+let isLongPress = false;
+
 const API_URL = "https://suryabiswas018-skarl-ai.hf.space/chat";
+
+// ==========================================
+// 🌟 USER AUTHENTICATION & PROFILE LOGIC
+// ==========================================
 
 function getInitials(name) {
     let initials = name.trim().split(/\s+/).map(word => word[0]).join('');
@@ -47,7 +56,6 @@ function logout() {
     localStorage.removeItem("skarl_user"); localStorage.removeItem("skarl_pass"); location.reload(); 
 }
 
-// 🌟 Missing Function added back! (This opens the sidebar on button click)
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
     if (sidebar) sidebar.classList.toggle('open');
@@ -57,6 +65,10 @@ function closeModal() {
     const confirmModal = document.getElementById('custom-confirm');
     if(confirmModal) confirmModal.classList.remove('active');
 }
+
+// ==========================================
+// 🌟 CHAT & IMAGE UPLOAD LOGIC
+// ==========================================
 
 document.getElementById('image-upload')?.addEventListener('change', function(e) {
     const file = e.target.files[0]; if (!file) return;
@@ -94,21 +106,79 @@ function appendMessage(text, sender, isError = false, imgSrc = null) {
     wrapper.appendChild(div); chat.appendChild(wrapper); chat.scrollTop = chat.scrollHeight; return wrapper;
 }
 
-function saveThreads() { localStorage.setItem("skyAiConversationThreads", JSON.stringify(conversationThreads)); renderSidebar(); }
+function saveThreads() { 
+    localStorage.setItem("skyAiConversationThreads", JSON.stringify(conversationThreads)); 
+    renderSidebar(); 
+}
+
 function loadThreads() {
     const stored = localStorage.getItem("skyAiConversationThreads");
     if (stored) { conversationThreads = JSON.parse(stored); renderSidebar(); }
 }
 
+// ==========================================
+// 🌟 RENDER SIDEBAR & LONG PRESS LOGIC
+// ==========================================
 function renderSidebar() {
     const list = document.getElementById("history-list"); if (!list) return; list.innerHTML = "";
+    
+    // Sort logic to bring pinned chats to top
+    let currentActiveThread = activeThreadIndex >= 0 ? conversationThreads[activeThreadIndex] : null;
+    
+    conversationThreads.sort((a, b) => {
+        let pinA = a.isPinned ? 1 : 0;
+        let pinB = b.isPinned ? 1 : 0;
+        return pinB - pinA;
+    });
+
+    if (currentActiveThread) {
+        activeThreadIndex = conversationThreads.indexOf(currentActiveThread);
+    }
+
     conversationThreads.forEach((thread, index) => {
         const item = document.createElement("div");
         item.className = `history-item ${index === activeThreadIndex ? "active" : ""}`;
+        if (thread.isPinned) item.classList.add("pinned");
+        
         item.innerText = thread.title || "Untitled Chat";
-        item.onclick = () => { loadThreadIntoChat(index); };
+
+        // Normal Click
+        item.onclick = (e) => {
+            if (isLongPress) { e.preventDefault(); return; }
+            loadThreadIntoChat(index);
+        };
+
+        // Desktop Right Click
+        item.oncontextmenu = (e) => {
+            e.preventDefault();
+            showContextMenu(e.clientX, e.clientY, index);
+        };
+
+        // Mobile Long Press
+        item.ontouchstart = (e) => {
+            isLongPress = false;
+            longPressTimer = setTimeout(() => {
+                isLongPress = true;
+                let touch = e.touches[0];
+                showContextMenu(touch.clientX, touch.clientY, index);
+            }, 600);
+        };
+        item.ontouchend = () => clearTimeout(longPressTimer);
+        item.ontouchmove = () => clearTimeout(longPressTimer);
+
         list.appendChild(item);
     });
+}
+
+function showContextMenu(x, y, index) {
+    contextMenuThreadIndex = index;
+    const menu = document.getElementById("thread-context-menu");
+    const isPinned = conversationThreads[index].isPinned;
+    document.getElementById("btn-pin-menu").innerText = isPinned ? "❌ Unpin from Top" : "📌 Pin to Top";
+
+    menu.style.display = "flex";
+    menu.style.left = `${x}px`;
+    menu.style.top = `${y}px`;
 }
 
 function loadThreadIntoChat(index){
@@ -133,13 +203,20 @@ function confirmClear(){
     document.getElementById("chat").innerHTML = ""; renderSidebar(); closeModal(); 
 }
 
+// ==========================================
+// 🌟 MESSAGE SENDING LOGIC
+// ==========================================
 async function sendMessage(){
     const input = document.getElementById("message"); let userText = input.value.trim();
     if(!userText && selectedImageBase64) { userText = "Please analyze this image and explain what you see."; } else if(!userText || input.disabled){ return; }
     input.disabled = true;
 
     if(activeThreadIndex === -1){
-        conversationThreads.push({ title: userText.substring(0,25) || "Image Analysis", messages: [] });
+        conversationThreads.push({ 
+            title: userText.substring(0,25) || "Image Analysis", 
+            messages: [],
+            isPinned: false
+        });
         activeThreadIndex = conversationThreads.length - 1;
     }
 
@@ -168,55 +245,65 @@ async function sendMessage(){
     if (window.innerWidth > 768) input.focus();
 }
 
+// ==========================================
+// 🌟 ALL DOM EVENTS (Click Outside, Pin/Delete, Swipe)
+// ==========================================
 document.addEventListener("DOMContentLoaded", () => {
     loadThreads();
     const input = document.getElementById("message");
     if(input) { input.addEventListener("keypress", (event) => { if(event.key === "Enter"){ event.preventDefault(); sendMessage(); input.blur(); }}); }
     const clearBtn = document.getElementById("clear-history"); if(clearBtn) clearBtn.onclick = clearHistory;
-});
 
-// ==========================================
-// 🌟 SWIPE & CLICK OUTSIDE LOGIC
-// ==========================================
-document.addEventListener("DOMContentLoaded", () => {
+    // PIN AND DELETE BUTTON ACTIONS
+    const pinBtn = document.getElementById("btn-pin-menu");
+    if (pinBtn) {
+        pinBtn.onclick = () => {
+            if (contextMenuThreadIndex > -1) {
+                conversationThreads[contextMenuThreadIndex].isPinned = !conversationThreads[contextMenuThreadIndex].isPinned;
+                document.getElementById("thread-context-menu").style.display = "none";
+                saveThreads();
+            }
+        };
+    }
+
+    const deleteBtn = document.getElementById("btn-delete-menu");
+    if (deleteBtn) {
+        deleteBtn.onclick = () => {
+            if (contextMenuThreadIndex > -1) {
+                if (contextMenuThreadIndex === activeThreadIndex) startNewChat(); 
+                conversationThreads.splice(contextMenuThreadIndex, 1); 
+                
+                if (contextMenuThreadIndex < activeThreadIndex) activeThreadIndex--;
+                else if (contextMenuThreadIndex === activeThreadIndex) activeThreadIndex = -1;
+                
+                document.getElementById("thread-context-menu").style.display = "none";
+                saveThreads();
+            }
+        };
+    }
+
+    // SWIPE & CLICK OUTSIDE LOGIC
     const sidebar = document.getElementById('sidebar');
     const menuBtn = document.querySelector('.menu-btn');
-    let touchStartX = 0;
-    let touchEndX = 0;
+    const contextMenu = document.getElementById("thread-context-menu");
+    let touchStartX = 0; let touchEndX = 0;
 
-    // ১. বাইরে ক্লিক করলে বন্ধ হবে
     document.addEventListener('click', (e) => {
+        if (contextMenu && contextMenu.style.display === "flex") {
+            if (!contextMenu.contains(e.target)) contextMenu.style.display = "none";
+        }
         if (window.innerWidth <= 768 && sidebar && sidebar.classList.contains('open')) {
-            if (!sidebar.contains(e.target) && (!menuBtn || !menuBtn.contains(e.target))) {
-                sidebar.classList.remove('open');
-            }
+            if (!sidebar.contains(e.target) && (!menuBtn || !menuBtn.contains(e.target))) sidebar.classList.remove('open');
         }
     });
 
-    // ২. স্লাইড (Swipe) হ্যান্ডেল করার লজিক
-    document.addEventListener('touchstart', e => {
-        touchStartX = e.changedTouches[0].screenX;
-    }, {passive: true});
-
+    document.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, {passive: true});
     document.addEventListener('touchend', e => {
         touchEndX = e.changedTouches[0].screenX;
-        
         if (window.innerWidth <= 768 && sidebar) {
             let swipeDistance = touchStartX - touchEndX;
-
-            // 🌟 Swipe Left to Close (ডান থেকে বামে অন্তত 50px টানলে)
-            if (swipeDistance > 50) {
-                if (sidebar.classList.contains('open')) {
-                    sidebar.classList.remove('open');
-                }
-            }
-            // 🌟 Swipe Right to Open (বাম থেকে ডানে অন্তত 50px টানলে)
-            else if (swipeDistance < -50) {
-                // স্ক্রিনের বাম পাশ (০ থেকে ১০০ পিক্সেলের মধ্যে) থেকে টানলে মেনু খুলবে
-                if (touchStartX < 100 && !sidebar.classList.contains('open')) {
-                    sidebar.classList.add('open');
-                }
-            }
+            if (swipeDistance > 50 && sidebar.classList.contains('open')) sidebar.classList.remove('open');
+            else if (swipeDistance < -50 && touchStartX < 100 && !sidebar.classList.contains('open')) sidebar.classList.add('open');
         }
     }, {passive: true});
 });
