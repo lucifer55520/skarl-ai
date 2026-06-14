@@ -6,6 +6,9 @@ let contextMenuThreadIndex = -1;
 let longPressTimer;
 let isLongPress = false;
 
+let touchStartX = 0;
+let touchEndX = 0;
+
 // Global variables for speech recognition
 let recognition;
 let isListening = false;
@@ -348,4 +351,32 @@ document.addEventListener('DOMContentLoaded', () => {
     if (voiceInputBtn) {
         voiceInputBtn.addEventListener('click', startVoiceInput);
     }
+
+    // Swipe gesture detection for the history sidebar
+    document.addEventListener('touchstart', e => {
+        touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+
+    document.addEventListener('touchend', e => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSidebarSwipe();
+    }, { passive: true });
 });
+
+function handleSidebarSwipe() {
+    const sidebar = document.getElementById('sidebar');
+    if (!sidebar) return;
+    
+    const swipeThreshold = 80;
+    const diffX = touchEndX - touchStartX;
+    const isOpen = sidebar.classList.contains('open');
+
+    // Swipe from left edge (0-50px) to the right: Open Sidebar
+    if (diffX > swipeThreshold && !isOpen && touchStartX < 50) {
+        sidebar.classList.add('open');
+    } 
+    // Swipe to the left: Close Sidebar
+    else if (diffX < -swipeThreshold && isOpen) {
+        sidebar.classList.remove('open');
+    }
+}
