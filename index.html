@@ -13,7 +13,6 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="site.webmanifest">
 
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
 <style>
@@ -34,7 +33,7 @@
 
   /* 🌟 Dark Sidebar (History List) */
   .history-sidebar {
-    background-color: #2f3d53; color: #ffffff; padding: 20px 16px;
+    background-color: #111111; color: #ffffff; padding: 20px 16px;
     border-right: 1px solid #222222; display: flex; flex-direction: column; overflow-y: auto;
   }
   .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
@@ -119,11 +118,12 @@
   .preview-box img { height: 60px; border-radius: 8px; border: 2px solid #e5e7eb; background: #f4f4f5; }
   .remove-img-btn { position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
+  /* 🌟 Input Area (Added Voice Button Logic) */
   .input-area { padding: 16px 24px; background: #ffffff; display: flex; gap: 12px; align-items: center; position: relative; z-index: 10; }
   .upload-btn { background: transparent; color: #6b7280; border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 1.4rem; }
   .upload-btn:hover { background: #f3f4f6; color: #111; }
-  .input-wrapper { display: flex; flex-grow: 1; background: #f4f4f5; border-radius: 30px; align-items: center; padding: 4px 12px; border: 1px solid #e5e7eb; }
-  .voice-input-btn { background: transparent; color: #6b7280; border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 1.4rem; }
+  
+  .voice-input-btn { background: transparent; color: #6b7280; border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s; }
   .voice-input-btn:hover { background: #f3f4f6; color: #111; }
   .voice-input-btn svg { width: 22px; height: 22px; }
   .voice-input-btn .stop-icon { display: none; }
@@ -131,6 +131,7 @@
   .voice-input-btn.listening .stop-icon { display: block; }
   .voice-input-btn.listening { color: #ef4444; animation: pulse 1s infinite; }
 
+  .input-wrapper { display: flex; flex-grow: 1; background: #f4f4f5; border-radius: 30px; align-items: center; padding: 4px 12px; border: 1px solid #e5e7eb; }
   #message { flex-grow: 1; background: transparent; border: none; outline: none; padding: 12px 8px; font-size: 1rem; color: #111; }
   button.send-btn { background: transparent; color: #111111; border: none; cursor: pointer; font-weight: bold; font-size: 1.2rem; padding: 8px; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; }
   button.send-btn:hover { transform: scale(1.1); }
@@ -139,12 +140,8 @@
   .user-message { background: #f3f4f6; color: #111111; padding: 14px 20px; border-radius: 20px 20px 4px 20px; margin-left: auto; max-width: 75%; font-weight: 400; }
   .user-img-msg { max-width: 200px; border-radius: 8px; margin-bottom: 8px; display: block; }
 
-  /* ======================================================== */
-  /* 🌟 AI MESSAGE MARKDOWN STYLES (এটা AI-এর লেখাকে সুন্দর করবে) */
-  /* ======================================================== */
-  .ai-message {
-    background-color: transparent; color: #111111; padding: 14px 0px; margin-right: auto; max-width: 90%; line-height: 1.6;
-  }
+  /* 🌟 AI MESSAGE MARKDOWN STYLES */
+  .ai-message { background-color: transparent; color: #111111; padding: 14px 0px; margin-right: auto; max-width: 90%; line-height: 1.6; }
   .ai-message p { margin-bottom: 12px; }
   .ai-message h1, .ai-message h2, .ai-message h3, .ai-message h4 { margin-top: 18px; margin-bottom: 10px; color: #000; font-weight: 700; }
   .ai-message h3 { font-size: 1.15rem; }
@@ -159,11 +156,7 @@
   @keyframes fadeInModal { from { opacity: 0; } to { opacity: 1; } }
   @keyframes popIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-  @keyframes pulse {
-    0% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.1); opacity: 0.7; }
-    100% { transform: scale(1); opacity: 1; }
-  }
+  @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.7; } 100% { transform: scale(1); opacity: 1; } }
 
   @media (max-width: 768px) {
     .main-layout { display: flex; position: relative; }
@@ -172,9 +165,9 @@
     header { justify-content: flex-start; gap: 15px; padding: 12px 16px; }
     .menu-btn { display: block; }
     .header-right { margin-left: auto; }
-    .input-area { padding: 12px 16px; padding-bottom: 20px; }
+    .input-area { padding: 12px 16px; padding-bottom: 20px; gap: 8px; }
     .chat-watermark img { width: 260px; }
-    .ai-message { max-width: 95%; } /* মোবাইলে এআই এর মেসেজ একটু ছড়ানো হবে */
+    .ai-message { max-width: 95%; } 
   }
 </style>
 </head>
@@ -222,6 +215,7 @@
     <div class="input-area">
       <button class="upload-btn" onclick="document.getElementById('image-upload').click()">📎</button>
       <input type="file" id="image-upload" accept="image/*" style="display: none;">
+
       <button class="voice-input-btn" id="voice-input-btn">
         <svg class="mic-icon" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
           <rect x="3" y="10" width="3" height="4" rx="1.5" />
