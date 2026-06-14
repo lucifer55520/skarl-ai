@@ -4,10 +4,6 @@ let selectedImageBase64 = null;
 
 const API_URL = "https://suryabiswas018-skarl-ai.hf.space/chat";
 
-// ==========================================
-// 🌟 USER AUTHENTICATION & PROFILE LOGIC
-// ==========================================
-
 function getInitials(name) {
     let initials = name.trim().split(/\s+/).map(word => word[0]).join('');
     return initials.substring(0, 2).toUpperCase();
@@ -51,9 +47,16 @@ function logout() {
     localStorage.removeItem("skarl_user"); localStorage.removeItem("skarl_pass"); location.reload(); 
 }
 
-// ==========================================
-// 🌟 CHAT & IMAGE UPLOAD LOGIC
-// ==========================================
+// 🌟 Missing Function added back! (This opens the sidebar on button click)
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) sidebar.classList.toggle('open');
+}
+
+function closeModal() {
+    const confirmModal = document.getElementById('custom-confirm');
+    if(confirmModal) confirmModal.classList.remove('active');
+}
 
 document.getElementById('image-upload')?.addEventListener('change', function(e) {
     const file = e.target.files[0]; if (!file) return;
@@ -120,7 +123,11 @@ function startNewChat() {
     if (window.innerWidth <= 768) { const sidebar = document.getElementById('sidebar'); if (sidebar.classList.contains('open')) sidebar.classList.remove('open'); }
 }
 
-function clearHistory(){ document.getElementById('custom-confirm').classList.add('active'); }
+function clearHistory(){ 
+    const confirmModal = document.getElementById('custom-confirm');
+    if(confirmModal) confirmModal.classList.add('active'); 
+}
+
 function confirmClear(){
     conversationThreads = []; activeThreadIndex = -1; localStorage.removeItem("skyAiConversationThreads");
     document.getElementById("chat").innerHTML = ""; renderSidebar(); closeModal(); 
@@ -169,7 +176,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ==========================================
-// 🌟 SWIPE & CLICK OUTSIDE LOGIC (PROPERLY FIXED)
+// 🌟 SWIPE & CLICK OUTSIDE LOGIC
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
     const sidebar = document.getElementById('sidebar');
@@ -205,7 +212,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             // 🌟 Swipe Right to Open (বাম থেকে ডানে অন্তত 50px টানলে)
             else if (swipeDistance < -50) {
-                // টাচ এরিয়া ৪০ পিক্সেল থেকে বাড়িয়ে ১০০ পিক্সেল করে দিলাম যাতে সহজে কাজ করে
+                // স্ক্রিনের বাম পাশ (০ থেকে ১০০ পিক্সেলের মধ্যে) থেকে টানলে মেনু খুলবে
                 if (touchStartX < 100 && !sidebar.classList.contains('open')) {
                     sidebar.classList.add('open');
                 }
