@@ -64,7 +64,17 @@
   }
   .history-item:hover { background-color: #222222; color: #ffffff; }
   .history-item.active { background-color: #222222; color: #ffffff; border-color: #444; }
-  .history-item.pinned { border-left: 3px solid #6a11cb; } /* Pinned Indicator */
+  .history-item.pinned { border-left: 3px solid #6a11cb; }
+
+  /* 🌟 Clear History Button (Fixed) */
+  #clear-history {
+    width: 100%; padding: 12px; margin-top: 15px;
+    background-color: transparent; color: #ef4444; 
+    border: 1px solid transparent; border-radius: 8px;
+    cursor: pointer; font-weight: 500; font-size: 0.95rem;
+    transition: all 0.2s;
+  }
+  #clear-history:hover { background-color: rgba(239, 68, 68, 0.1); }
 
   /* 🌟 Clean Chat Container */
   .chat-container {
@@ -112,21 +122,31 @@
   }
   .modal-overlay.active { display: flex; animation: fadeInModal 0.2s ease-out forwards; }
 
-  .login-box {
+  .login-box, .modal-box {
     background: #ffffff; padding: 30px 24px; border-radius: 16px; text-align: center; color: #333333; 
     width: 90%; max-width: 340px; box-shadow: 0px 15px 40px rgba(0, 0, 0, 0.15); border: 1px solid #e5e7eb;
     transform: scale(0.9); animation: popIn 0.2s ease-out forwards;
   }
-  .login-box h2 { margin-bottom: 15px; color: #111111; font-weight: 600; }
+  .login-box h2, .modal-box h3 { margin-bottom: 15px; color: #111111; font-weight: 600; }
+  .modal-box p { font-size: 0.95rem; color: #6b7280; margin-bottom: 24px; line-height: 1.5; }
+  
+  .modal-actions { display: flex; gap: 12px; }
+  .login-box button, .modal-actions button {
+    flex: 1; padding: 12px; border-radius: 8px; border: none;
+    font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: background 0.2s;
+  }
   .login-box input {
     width: 100%; padding: 14px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #d1d5db; background: #f9fafb; outline: none; font-size: 1rem;
   }
   .login-box input:focus { border-color: #6a11cb; background: #ffffff; }
-  .login-box button {
-    background: #6a11cb; color: white; width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: 600; font-size: 0.95rem; cursor: pointer;
-  }
+  .login-box button { background: #6a11cb; color: white; width: 100%; }
+  
+  .btn-cancel { background: #f3f4f6; color: #4b5563; border: 1px solid #d1d5db;}
+  .btn-cancel:hover { background: #e5e7eb; }
+  .btn-delete { background: #ef4444; color: white; }
+  .btn-delete:hover { background: #dc2626; }
 
-  /* 🌟 Context Menu (Long Press Options) */
+  /* 🌟 Context Menu */
   #thread-context-menu {
     position: absolute; background: #ffffff; border: 1px solid #e5e7eb; box-shadow: 0 4px 15px rgba(0,0,0,0.15);
     border-radius: 8px; display: none; flex-direction: column; z-index: 10000; min-width: 140px; overflow: hidden;
@@ -142,7 +162,6 @@
     position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
     z-index: 0; pointer-events: none; display: flex; justify-content: center; align-items: center; width: 100%;
   }
-  /* Logo Whitish Issue Fixed: Used multiply and lowered opacity so it looks like a clean stamp */
   .chat-watermark img { width: 350px; mix-blend-mode: multiply; opacity: 0.15; filter: grayscale(100%); }
 
   #chat {
@@ -150,7 +169,6 @@
     position: relative; z-index: 1; display: flex; flex-direction: column; gap: 20px; scrollbar-width: thin;
   }
 
-  /* Image Preview Box Fix */
   .preview-container { display: none; padding: 10px 24px; background: #ffffff; position: relative; z-index: 10; }
   .preview-box { position: relative; display: inline-block; }
   .preview-box img { height: 60px; border-radius: 8px; border: 2px solid #e5e7eb; background: #f4f4f5; }
@@ -159,7 +177,6 @@
     border-radius: 50%; width: 22px; height: 22px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center;
   }
 
-  /* 🌟 Input Area Fix (Send Button Inside Pill) */
   .input-area {
     padding: 16px 24px; background: #ffffff; 
     display: flex; gap: 12px; align-items: center; position: relative; z-index: 10;
@@ -176,7 +193,6 @@
   #message {
     flex-grow: 1; background: transparent; border: none; outline: none; padding: 12px 8px; font-size: 1rem; color: #111;
   }
-  /* Send Button is now Black */
   button.send-btn {
     background: transparent; color: #111111; border: none; cursor: pointer; font-weight: bold; font-size: 1.2rem; padding: 8px; display: flex; align-items: center; justify-content: center; transition: transform 0.2s;
   }
@@ -191,7 +207,6 @@
   @keyframes popIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-  /* Mobile Responsive */
   @media (max-width: 768px) {
     .main-layout { display: flex; position: relative; }
     .history-sidebar {
@@ -216,6 +231,7 @@
     </div>
     <button id="new-chat-btn" onclick="startNewChat()">➕ New Chat</button>
     <div id="history-list"></div>
+    <button id="clear-history">🗑️ Clear History</button>
   </div>
 
   <div class="chat-container">
@@ -268,7 +284,17 @@
   </div>
 </div>
 
-<!-- 🌟 Context Menu for Delete/Pin -->
+<div id="custom-confirm" class="modal-overlay">
+  <div class="modal-box">
+    <h3>Clear History?</h3>
+    <p>Are you sure you want to delete all conversations? This action cannot be undone.</p>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-delete" onclick="confirmClear()">Delete</button>
+    </div>
+  </div>
+</div>
+
 <div id="thread-context-menu">
     <button id="btn-pin-menu">📌 Pin to Top</button>
     <button id="btn-delete-menu">🗑️ Delete Chat</button>
