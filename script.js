@@ -4,6 +4,10 @@ let selectedImageBase64 = null;
 
 const API_URL = "https://suryabiswas018-skarl-ai.hf.space/chat";
 
+// ==========================================
+// 🌟 USER AUTHENTICATION & PROFILE LOGIC
+// ==========================================
+
 function getInitials(name) {
     let initials = name.trim().split(/\s+/).map(word => word[0]).join('');
     return initials.substring(0, 2).toUpperCase();
@@ -46,6 +50,10 @@ function toggleProfile() {
 function logout() {
     localStorage.removeItem("skarl_user"); localStorage.removeItem("skarl_pass"); location.reload(); 
 }
+
+// ==========================================
+// 🌟 CHAT & IMAGE UPLOAD LOGIC
+// ==========================================
 
 document.getElementById('image-upload')?.addEventListener('change', function(e) {
     const file = e.target.files[0]; if (!file) return;
@@ -161,40 +169,42 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ==========================================
-// 🌟 SWIPE & CLICK OUTSIDE LOGIC (FIXED)
+// 🌟 SWIPE TO OPEN/CLOSE & CLICK OUTSIDE
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
     const sidebar = document.getElementById('sidebar');
     const menuBtn = document.querySelector('.menu-btn');
     let touchStartX = 0;
+    let touchEndX = 0;
 
     // ১. বাইরে ক্লিক করলে বন্ধ হবে
     document.addEventListener('click', (e) => {
-        if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
-            if (!sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
+        if (window.innerWidth <= 768 && sidebar && sidebar.classList.contains('open')) {
+            if (!sidebar.contains(e.target) && (!menuBtn || !menuBtn.contains(e.target))) {
                 sidebar.classList.remove('open');
             }
         }
     });
 
-    // ২. স্লাইড (Swipe) হ্যান্ডেল করার লজিক
+    // ২. স্লাইড (Swipe) হ্যান্ডেল করার ম্যাজিক লজিক
     document.addEventListener('touchstart', e => {
         touchStartX = e.changedTouches[0].screenX;
     }, {passive: true});
 
     document.addEventListener('touchend', e => {
-        let touchEndX = e.changedTouches[0].screenX;
+        touchEndX = e.changedTouches[0].screenX;
         
-        if (window.innerWidth <= 768) {
-            // Swipe Left to Close (ডান থেকে বামে)
+        if (window.innerWidth <= 768 && sidebar) {
+            // Swipe Left to Close (ডান থেকে বামে অন্তত 50px টানলে)
             if (touchStartX - touchEndX > 50) {
                 if (sidebar.classList.contains('open')) {
                     sidebar.classList.remove('open');
                 }
             }
-            // Swipe Right to Open (বাম থেকে ডানে)
-            if (touchEndX - touchStartX > 50) {
+            // Swipe Right to Open (বাম থেকে ডানে অন্তত 30px টানলে)
+            else if (touchEndX - touchStartX > 30) {
                 // শুধুমাত্র স্ক্রিনের একদম বাম পাশ (০ থেকে ৪০ পিক্সেলের মধ্যে) থেকে টানলে মেনু খুলবে
+                // এতে করে চ্যাট স্ক্রোল করার সময় ভুল করে মেনু খুলবে না
                 if (touchStartX < 40 && !sidebar.classList.contains('open')) {
                     sidebar.classList.add('open');
                 }
