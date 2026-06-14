@@ -169,7 +169,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ==========================================
-// 🌟 SWIPE TO OPEN/CLOSE & CLICK OUTSIDE
+// 🌟 SWIPE & CLICK OUTSIDE LOGIC (PROPERLY FIXED)
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
     const sidebar = document.getElementById('sidebar');
@@ -186,7 +186,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // ২. স্লাইড (Swipe) হ্যান্ডেল করার ম্যাজিক লজিক
+    // ২. স্লাইড (Swipe) হ্যান্ডেল করার লজিক
     document.addEventListener('touchstart', e => {
         touchStartX = e.changedTouches[0].screenX;
     }, {passive: true});
@@ -195,17 +195,18 @@ document.addEventListener("DOMContentLoaded", () => {
         touchEndX = e.changedTouches[0].screenX;
         
         if (window.innerWidth <= 768 && sidebar) {
-            // Swipe Left to Close (ডান থেকে বামে অন্তত 50px টানলে)
-            if (touchStartX - touchEndX > 50) {
+            let swipeDistance = touchStartX - touchEndX;
+
+            // 🌟 Swipe Left to Close (ডান থেকে বামে অন্তত 50px টানলে)
+            if (swipeDistance > 50) {
                 if (sidebar.classList.contains('open')) {
                     sidebar.classList.remove('open');
                 }
             }
-            // Swipe Right to Open (বাম থেকে ডানে অন্তত 30px টানলে)
-            else if (touchEndX - touchStartX > 30) {
-                // শুধুমাত্র স্ক্রিনের একদম বাম পাশ (০ থেকে ৪০ পিক্সেলের মধ্যে) থেকে টানলে মেনু খুলবে
-                // এতে করে চ্যাট স্ক্রোল করার সময় ভুল করে মেনু খুলবে না
-                if (touchStartX < 40 && !sidebar.classList.contains('open')) {
+            // 🌟 Swipe Right to Open (বাম থেকে ডানে অন্তত 50px টানলে)
+            else if (swipeDistance < -50) {
+                // টাচ এরিয়া ৪০ পিক্সেল থেকে বাড়িয়ে ১০০ পিক্সেল করে দিলাম যাতে সহজে কাজ করে
+                if (touchStartX < 100 && !sidebar.classList.contains('open')) {
                     sidebar.classList.add('open');
                 }
             }
