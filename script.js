@@ -266,10 +266,6 @@ function startVoiceInput() {
         voiceInputBtn.classList.remove('listening');
         messageInput.placeholder = "Ask anything...";
         console.log("Voice recognition ended.");
-        // If there's final text, send it automatically
-        if (messageInput.value.trim() !== "") {
-            sendMessage();
-        }
     };
 
     recognition.start();
