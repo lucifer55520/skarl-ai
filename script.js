@@ -208,6 +208,12 @@ function confirmClear(){
 // Function to initialize and start speech recognition
 function startVoiceInput() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    
+    if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+        alert("Voice input requires an HTTPS connection to work on a public domain.");
+        return;
+    }
+
     if (!SpeechRecognition) {
         alert("Your browser does not support Web Speech API. Please use Google Chrome.");
         return;
