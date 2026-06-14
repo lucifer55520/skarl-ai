@@ -279,6 +279,28 @@
     <button id="btn-delete-menu">🗑️ Delete Chat</button>
 </div>
 
-<script type="module" src="script.js"></script>
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyB65GFRDmzgxKuC9coyqOlARLdA7CZwYSY",
+    authDomain: "skarl-ai.firebaseapp.com",
+    projectId: "skarl-ai",
+    storageBucket: "skarl-ai.firebasestorage.app",
+    messagingSenderId: "21596213609",
+    appId: "1:21596213609:web:6c503608530d5a9010adf8",
+    measurementId: "G-9EQ6D8NB43"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+</script>
 </body>
 </html>
