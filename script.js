@@ -1,6 +1,3 @@
-// script.js
-import { auth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from './auth.js';
-
 let conversationThreads = []; 
 let activeThreadIndex = -1;
 let selectedImageBase64 = null; 
@@ -35,38 +32,16 @@ window.onload = function() {
     }
 };
 
-// ==========================================
-// 🔐 AUTHENTICATION LOGIC
-// ==========================================
-async function handleLogin() {
-    let email = document.getElementById("login-user").value.trim();
+function handleLogin() {
+    let user = document.getElementById("login-user").value.trim();
     let pass = document.getElementById("login-pass").value.trim();
-    
-    if (email === "" || pass === "") { 
-        alert("Please enter both email and password!"); 
-        return; 
-    }
-
-    try {
-        // Firebase Authentication
-        await signInWithEmailAndPassword(auth, email, pass);
-        
-        // Update LocalStorage and UI on success
-        localStorage.setItem("skarl_user", email);
-        localStorage.setItem("skarl_pass", pass);
-        
-        document.getElementById("login-modal").style.display = "none";
-        document.getElementById("system-ready-badge").style.display = "none";
-        
-        let icon = document.getElementById("user-profile-icon");
-        if(icon) { 
-            icon.innerText = getInitials(email); 
-            icon.style.display = "flex"; 
-        }
-        
-    } catch (error) {
-        alert("Login Failed: " + error.message);
-    }
+    if (user === "" || pass === "") { alert("Please enter both username and password!"); return; }
+    localStorage.setItem("skarl_user", user);
+    localStorage.setItem("skarl_pass", pass);
+    document.getElementById("login-modal").style.display = "none";
+    document.getElementById("system-ready-badge").style.display = "none";
+    let icon = document.getElementById("user-profile-icon");
+    if(icon) { icon.innerText = getInitials(user); icon.style.display = "flex"; }
 }
 
 function toggleProfile() {
@@ -78,20 +53,10 @@ function toggleProfile() {
     }
 }
 
-async function logout() {
-    try {
-        await signOut(auth);
-        localStorage.removeItem("skarl_user"); 
-        localStorage.removeItem("skarl_pass"); 
-        location.reload(); 
-    } catch (error) {
-        alert("Logout Failed: " + error.message);
-    }
+function logout() {
+    localStorage.removeItem("skarl_user"); localStorage.removeItem("skarl_pass"); location.reload(); 
 }
 
-// ==========================================
-// 🎨 UI & SIDEBAR LOGIC
-// ==========================================
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
     if (sidebar) sidebar.classList.toggle('open');
@@ -352,6 +317,7 @@ async function sendMessage() {
         const response = await fetch(API_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            // 🌟 FIXED: Added 'image: currentImg' here so backend actually receives the image!
             body: JSON.stringify({ message: userText, history: history, image: currentImg }) 
         });
 
@@ -372,11 +338,6 @@ async function sendMessage() {
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
     loadThreads();
-    
-    // Explicitly binding the handleLogin to the login button or form if needed
-    // Example: document.getElementById('login-btn').addEventListener('click', handleLogin);
-    window.handleLogin = handleLogin; // Expose to global scope for inline HTML onclick attributes
-    window.logout = logout;           // Expose to global scope for inline HTML onclick attributes
     
     const voiceInputBtn = document.getElementById('voice-input-btn');
     if (voiceInputBtn) {
