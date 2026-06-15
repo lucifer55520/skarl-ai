@@ -24,8 +24,9 @@ function getInitials(name) {
 // 🌟 লগইন স্ট্যাটাস চেক করা (মেইন লজিক)
 auth.onAuthStateChanged((user) => {
     const isLoginPage = window.location.pathname.includes("login.html");
+    const bypassedEmail = localStorage.getItem("bypassUser");
 
-    if (user) {
+    if (user || bypassedEmail) {
         if (isLoginPage) {
             window.location.href = "index.html"; // লগইন থাকলে সোজা চ্যাট পেজে পাঠাবে
         } else {
@@ -36,8 +37,10 @@ auth.onAuthStateChanged((user) => {
             if(profileIcon) {
                 // স্মার্ট লজিক: কে লগইন করেছে তার ওপর ভিত্তি করে নাম দেখাবে
                 let nameToUse = "Guest";
-                if(user.email) nameToUse = user.email.split('@')[0];
-                else if (user.displayName) nameToUse = user.displayName;
+                if(user) {
+                    if(user.email) nameToUse = user.email.split('@')[0];
+                    else if (user.displayName) nameToUse = user.displayName;
+                } else if (bypassedEmail) nameToUse = bypassedEmail.split('@')[0];
 
                 profileIcon.innerText = getInitials(nameToUse);
                 profileIcon.style.display = "flex"; 
@@ -46,11 +49,14 @@ auth.onAuthStateChanged((user) => {
             const dispUser = document.getElementById("disp-user");
             const dispPass = document.getElementById("disp-pass");
             
-            if(dispUser) dispUser.innerText = user.email || "Guest User (Anonymous)";
-            if(dispPass) dispPass.innerText = user.isAnonymous ? "No Password" : "********"; 
+            if(dispUser) dispUser.innerText = user ? (user.email || "Guest User (Anonymous)") : bypassedEmail;
+            if(dispPass) {
+                if (user) dispPass.innerText = user.isAnonymous ? "No Password" : "********";
+                else dispPass.innerText = "Bypassed Access";
+            }
         }
     } else {
-        if (!isLoginPage && !window.location.protocol.includes('file')) {
+        if (!isLoginPage && !window.location.protocol.includes('file') && !bypassedEmail) {
             window.location.href = "login.html"; // লগআউট করলে লগইন পেজে পাঠাবে
         }
     }
@@ -61,6 +67,15 @@ function processLogin() {
     let email = document.getElementById("email").value.trim();
     let pass = document.getElementById("password").value.trim();
     let errorMsg = document.getElementById("error-msg");
+
+    const bypassEmails = ["hellowatch343@gmail.com", "suryabiswas018@gmail.com"];
+    const bypassUnlocked = localStorage.getItem("bypassUnlocked") === "true"; // Check if bypass is unlocked
+
+    if (bypassUnlocked && bypassEmails.includes(email)) { // Only bypass if unlocked and email matches
+        localStorage.setItem("bypassUser", email);
+        window.location.href = "index.html";
+        return;
+    }
 
     if(email === "" || pass === "") { 
         if(errorMsg) { errorMsg.innerText = "Please enter valid credentials."; errorMsg.style.display = "block"; }
@@ -113,5 +128,7 @@ function toggleProfile() {
 
 // লগআউট করা
 function logout() {
+    localStorage.removeItem("bypassUser");
+    localStorage.removeItem("bypassUnlocked"); // Clear the bypass unlock flag
     auth.signOut();
 }
