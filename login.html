@@ -34,10 +34,12 @@
 
         /* 🌟 Text এর বদলে Image Logo এর ডিজাইন */
         .logo-img { 
-            width: 150px; /* লোগো ছোট/বড় করতে চাইলে এই সাইজটি পাল্টাতে পারেন */
+            width: 150px; 
             height: auto; 
             display: block; 
             margin: 0 auto 5px auto; 
+            mix-blend-mode: multiply; /* সাদা ব্যাকগ্রাউন্ড স্বচ্ছ করে দেবে */
+            filter: contrast(1.2); 
         }
 
         .subtitle { font-size: 0.75rem; font-weight: 600; color: #555; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 25px; }
