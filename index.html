@@ -120,10 +120,10 @@
 
   /* 🌟 Input Area & Action Buttons */
   .input-area { padding: 16px 24px; background: #ffffff; display: flex; gap: 12px; align-items: center; position: relative; z-index: 10; }
-  
+
   .upload-btn { background: transparent; color: #6b7280; border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 1.4rem; flex-shrink: 0; }
   .upload-btn:hover { background: #f3f4f6; color: #111; }
-  
+
   .voice-input-btn { background: transparent; color: #6b7280; border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
   .voice-input-btn:hover { background: #f3f4f6; color: #111; }
   .voice-input-btn svg { width: 22px; height: 22px; }
@@ -133,9 +133,9 @@
   .voice-input-btn.listening { color: #ef4444; animation: pulse 1s infinite; }
 
   .input-wrapper { display: flex; flex-grow: 1; background: #f4f4f5; border-radius: 30px; align-items: center; padding: 4px 12px; border: 1px solid #e5e7eb; min-width: 0; }
-  
+
   #message { flex-grow: 1; background: transparent; border: none; outline: none; padding: 12px 8px; font-size: 1rem; color: #111; min-width: 0; }
-  
+
   /* 🌟 FIXED SEND BUTTON (Arrow) */
   button.send-btn { 
     background: transparent; 
@@ -149,8 +149,8 @@
     align-items: center; 
     justify-content: center; 
     transition: transform 0.2s; 
-    flex-shrink: 0; /* Ensures the arrow button doesn't shrink */
-    min-width: 40px; /* Gives the button enough space to display properly */
+    flex-shrink: 0; 
+    min-width: 40px; 
   }
   button.send-btn:hover { transform: scale(1.1); }
 
@@ -254,15 +254,6 @@
   </div>
 </div>
 
-<div id="login-modal" class="modal-overlay">
-  <div class="login-box">
-    <h2>Skarl AI Login</h2>
-    <input type="text" id="login-user" placeholder="Enter Username" required>
-    <input type="password" id="login-pass" placeholder="Enter Password" required>
-    <button onclick="handleLogin()">Login to System</button>
-  </div>
-</div>
-
 <div id="custom-confirm" class="modal-overlay">
   <div class="modal-box">
     <h3>Clear History?</h3>
@@ -278,6 +269,12 @@
     <button id="btn-pin-menu">📌 Pin to Top</button>
     <button id="btn-delete-menu">🗑️ Delete Chat</button>
 </div>
+
+<!-- 🌟 Firebase এবং আপনার স্ক্রিপ্ট কানেকশন -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="auth.js"></script>
 <script src="script.js"></script>
+
 </body>
 </html>
