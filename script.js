@@ -371,7 +371,7 @@ function stopVoiceInput() {
 }
 
 // ==========================================
-// 🚀 MESSAGE SENDING LOGIC TO SERVER
+// 🚀 MESSAGE SENDING & TYPEWRITER LOGIC (UPDATED)
 // ==========================================
 async function sendMessage() {
     stopVoiceInput();
@@ -402,13 +402,15 @@ async function sendMessage() {
         content: m.text
     }));
 
-    // 🌟 No more Crash here! The image is already compressed
     thread.messages.push({ text: userText, sender: "user", image: currentImg });
     saveThreads();
 
-    // Show typing indicator
+    // Show initial typing indicator
     const aiWrapper = appendMessage("Thinking...", "ai");
     const aiTextContainer = aiWrapper.querySelector(".ai-message div");
+    
+    // Save current thread index to prevent bugs if user switches chat during generation
+    const currentThreadIndexAtStart = activeThreadIndex;
 
     try {
         const response = await fetch(API_URL, {
@@ -420,11 +422,38 @@ async function sendMessage() {
         if (!response.ok) throw new Error("Failed to connect to Skarl AI Server.");
 
         const data = await response.json();
+        const fullReply = data.reply;
 
-        // Update the AI message box directly
-        aiTextContainer.innerHTML = marked.parse(data.reply);
-        thread.messages.push({ text: data.reply, sender: "ai" });
+        // Save immediately to history array
+        thread.messages.push({ text: fullReply, sender: "ai" });
         saveThreads();
+
+        // 🌟 START SMART TYPEWRITER ANIMATION 🌟
+        aiTextContainer.innerHTML = ""; 
+        let i = 0;
+        let currentText = "";
+        
+        function typeWriter() {
+            // Stop typing if user switched to another chat thread
+            if (activeThreadIndex !== currentThreadIndexAtStart) return; 
+
+            if (i < fullReply.length) {
+                // Takes 2 to 4 characters at a time for a fast, natural typing speed
+                let chunkSize = Math.floor(Math.random() * 3) + 2; 
+                currentText += fullReply.substring(i, i + chunkSize);
+                
+                // Live parse Markdown to HTML
+                aiTextContainer.innerHTML = marked.parse(currentText);
+                
+                // Auto-scroll to bottom while typing
+                const chatBox = document.getElementById("chat");
+                chatBox.scrollTop = chatBox.scrollHeight;
+                
+                i += chunkSize;
+                setTimeout(typeWriter, 15); // Adjust this number (e.g., 10 or 20) to change typing speed
+            }
+        }
+        typeWriter();
 
     } catch (error) {
         aiTextContainer.innerText = "Connection Error: " + error.message;
