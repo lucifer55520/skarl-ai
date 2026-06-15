@@ -18,14 +18,11 @@ const API_URL = "https://suryabiswas018-skarl-ai.hf.space/chat";
 // 🚀 INITIALIZATION & EVENT LISTENERS
 // ==========================================
 window.onload = function() {
-    // শুধু চ্যাট হিস্ট্রি লোড করবে, লগইন চেক করবে auth.js
     loadThreads();
 
-    // Voice Input Button Binding
     const voiceInputBtn = document.getElementById('voice-input-btn');
     if (voiceInputBtn) voiceInputBtn.onclick = startVoiceInput;
 
-    // Enter Key Binding for Message Input
     const messageInput = document.getElementById('message');
     if (messageInput) {
         messageInput.addEventListener('keydown', (e) => {
@@ -37,11 +34,9 @@ window.onload = function() {
         });
     }
 
-    // Clear History Button Binding
     const clearBtn = document.getElementById("clear-history"); 
     if(clearBtn) clearBtn.onclick = clearHistory;
 
-    // Context Menu Pin Button
     const pinBtn = document.getElementById("btn-pin-menu");
     if (pinBtn) {
         pinBtn.onclick = () => {
@@ -53,7 +48,6 @@ window.onload = function() {
         };
     }
 
-    // Context Menu Delete Button
     const deleteBtn = document.getElementById("btn-delete-menu");
     if (deleteBtn) {
         deleteBtn.onclick = () => {
@@ -70,7 +64,6 @@ window.onload = function() {
         };
     }
 
-    // Global Click Event for closing Context Menu & Sidebar
     document.addEventListener('click', (e) => {
         const contextMenu = document.getElementById("thread-context-menu");
         if (contextMenu && contextMenu.style.display === "flex") {
@@ -84,7 +77,6 @@ window.onload = function() {
         }
     });
 
-    // Touch Events for Mobile Sidebar Swipe
     document.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
     document.addEventListener('touchend', e => {
         touchEndX = e.changedTouches[0].screenX;
@@ -113,22 +105,52 @@ function handleSidebarSwipe() {
     const diffX = touchEndX - touchStartX;
     const isOpen = sidebar.classList.contains('open');
 
-    // Swipe Right to open
     if (diffX > swipeThreshold && !isOpen && touchStartX < 100) sidebar.classList.add('open');
-    // Swipe Left to close
     else if (diffX < -swipeThreshold && isOpen) sidebar.classList.remove('open');
 }
 
 // ==========================================
-// 📸 IMAGE UPLOAD LOGIC
+// 📸 SMART IMAGE COMPRESSOR & UPLOAD LOGIC
 // ==========================================
 document.getElementById('image-upload')?.addEventListener('change', function(e) {
-    const file = e.target.files[0]; if (!file) return;
+    const file = e.target.files[0]; 
+    if (!file) return;
+
     const reader = new FileReader();
     reader.onload = function(event) {
-        selectedImageBase64 = event.target.result;
-        document.getElementById('preview-container').style.display = 'block';
-        document.getElementById('image-preview').src = selectedImageBase64;
+        // 🌟 Auto-Compressor: Resizes image to prevent LocalStorage 5MB Crash!
+        const img = new Image();
+        img.onload = function() {
+            const canvas = document.createElement("canvas");
+            const MAX_WIDTH = 800;
+            const MAX_HEIGHT = 800;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+                if (width > MAX_WIDTH) {
+                    height *= MAX_WIDTH / width;
+                    width = MAX_WIDTH;
+                }
+            } else {
+                if (height > MAX_HEIGHT) {
+                    width *= MAX_HEIGHT / height;
+                    height = MAX_HEIGHT;
+                }
+            }
+            canvas.width = width;
+            canvas.height = height;
+            
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, width, height);
+
+            // Compress to 70% Quality JPEG
+            selectedImageBase64 = canvas.toDataURL("image/jpeg", 0.7); 
+            
+            document.getElementById('preview-container').style.display = 'block';
+            document.getElementById('image-preview').src = selectedImageBase64;
+        };
+        img.src = event.target.result;
     };
     reader.readAsDataURL(file);
 });
@@ -154,13 +176,15 @@ function appendMessage(text, sender, isError = false, imgSrc = null) {
 
     if (imgSrc && sender === "user") {
         const img = document.createElement("img");
-        img.src = imgSrc; img.className = "user-img-msg"; div.appendChild(img);
+        img.src = imgSrc; 
+        img.className = "user-img-msg"; 
+        div.appendChild(img);
     }
 
     if (text) {
         const textContainer = document.createElement("div");
         if (sender === "ai" && !isError) {
-            textContainer.innerHTML = marked.parse(text); // Converts markdown
+            textContainer.innerHTML = marked.parse(text); 
         } else {
             textContainer.innerHTML = text.replace(/\n/g, '<br>');
         }
@@ -174,7 +198,11 @@ function appendMessage(text, sender, isError = false, imgSrc = null) {
 }
 
 function saveThreads() { 
-    localStorage.setItem("skyAiConversationThreads", JSON.stringify(conversationThreads)); 
+    try {
+        localStorage.setItem("skyAiConversationThreads", JSON.stringify(conversationThreads)); 
+    } catch (e) {
+        console.warn("⚠️ LocalStorage limit reached! Cannot save more history.");
+    }
     renderSidebar(); 
 }
 
@@ -215,7 +243,6 @@ function renderSidebar() {
             showContextMenu(e.clientX, e.clientY, index);
         };
 
-        // Mobile Long Press Logic
         item.ontouchstart = (e) => {
             isLongPress = false;
             longPressTimer = setTimeout(() => {
@@ -375,6 +402,7 @@ async function sendMessage() {
         content: m.text
     }));
 
+    // 🌟 No more Crash here! The image is already compressed
     thread.messages.push({ text: userText, sender: "user", image: currentImg });
     saveThreads();
 
@@ -389,7 +417,7 @@ async function sendMessage() {
             body: JSON.stringify({ message: userText, history: history, image: currentImg }) 
         });
 
-        if (!response.ok) throw new Error("Failed to connect to Skarl AI.");
+        if (!response.ok) throw new Error("Failed to connect to Skarl AI Server.");
 
         const data = await response.json();
 
