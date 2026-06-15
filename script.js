@@ -9,17 +9,20 @@ let isLongPress = false;
 let touchStartX = 0;
 let touchEndX = 0;
 
-// Global variables for speech recognition
 let recognition;
 let isListening = false;
 
 const API_URL = "https://suryabiswas018-skarl-ai.hf.space/chat";
 
+// ইউজারের নামের প্রথম ২ অক্ষর প্রোফাইল আইকনে দেখানোর জন্য
 function getInitials(name) {
     let initials = name.trim().split(/\s+/).map(word => word[0]).join('');
     return initials.substring(0, 2).toUpperCase();
 }
 
+// ==========================================
+// 🚀 INITIALIZATION & EVENT LISTENERS
+// ==========================================
 window.onload = function() {
     let savedUser = localStorage.getItem("skarl_user");
     if (savedUser) {
@@ -31,14 +34,91 @@ window.onload = function() {
             icon.style.display = "flex"; 
         }
     }
+
+    loadThreads();
+
+    // Voice Input Button Binding
+    const voiceInputBtn = document.getElementById('voice-input-btn');
+    if (voiceInputBtn) voiceInputBtn.onclick = startVoiceInput;
+
+    // Enter Key Binding for Message Input
+    const messageInput = document.getElementById('message');
+    if (messageInput) {
+        messageInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                sendMessage();
+                messageInput.blur();
+            }
+        });
+    }
+
+    // Clear History Button Binding
+    const clearBtn = document.getElementById("clear-history"); 
+    if(clearBtn) clearBtn.onclick = clearHistory;
+
+    // Context Menu Pin Button
+    const pinBtn = document.getElementById("btn-pin-menu");
+    if (pinBtn) {
+        pinBtn.onclick = () => {
+            if (contextMenuThreadIndex > -1) {
+                conversationThreads[contextMenuThreadIndex].isPinned = !conversationThreads[contextMenuThreadIndex].isPinned;
+                document.getElementById("thread-context-menu").style.display = "none";
+                saveThreads();
+            }
+        };
+    }
+
+    // Context Menu Delete Button
+    const deleteBtn = document.getElementById("btn-delete-menu");
+    if (deleteBtn) {
+        deleteBtn.onclick = () => {
+            if (contextMenuThreadIndex > -1) {
+                if (contextMenuThreadIndex === activeThreadIndex) startNewChat(); 
+                conversationThreads.splice(contextMenuThreadIndex, 1); 
+
+                if (contextMenuThreadIndex < activeThreadIndex) activeThreadIndex--;
+                else if (contextMenuThreadIndex === activeThreadIndex) activeThreadIndex = -1;
+
+                document.getElementById("thread-context-menu").style.display = "none";
+                saveThreads();
+            }
+        };
+    }
+
+    // Global Click Event for closing Context Menu & Sidebar
+    document.addEventListener('click', (e) => {
+        const contextMenu = document.getElementById("thread-context-menu");
+        if (contextMenu && contextMenu.style.display === "flex") {
+            if (!contextMenu.contains(e.target)) contextMenu.style.display = "none";
+        }
+        
+        const sidebar = document.getElementById('sidebar');
+        const menuBtn = document.querySelector('.menu-btn');
+        if (window.innerWidth <= 768 && sidebar && sidebar.classList.contains('open')) {
+            if (!sidebar.contains(e.target) && (!menuBtn || !menuBtn.contains(e.target))) sidebar.classList.remove('open');
+        }
+    });
+
+    // Touch Events for Mobile Sidebar Swipe
+    document.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
+    document.addEventListener('touchend', e => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSidebarSwipe();
+    }, { passive: true });
 };
 
+// ==========================================
+// 🔐 AUTHENTICATION LOGIC (Local Storage)
+// ==========================================
 function handleLogin() {
     let user = document.getElementById("login-user").value.trim();
     let pass = document.getElementById("login-pass").value.trim();
     if (user === "" || pass === "") { alert("Please enter both username and password!"); return; }
+    
     localStorage.setItem("skarl_user", user);
     localStorage.setItem("skarl_pass", pass);
+    
     document.getElementById("login-modal").style.display = "none";
     document.getElementById("system-ready-badge").style.display = "none";
     let icon = document.getElementById("user-profile-icon");
@@ -49,15 +129,20 @@ function toggleProfile() {
     let dropdown = document.getElementById("profile-dropdown");
     if(dropdown) {
         document.getElementById("disp-user").innerText = localStorage.getItem("skarl_user");
-        document.getElementById("disp-pass").innerText = localStorage.getItem("skarl_pass");
+        document.getElementById("disp-pass").innerText = "********"; // Security purpose
         dropdown.classList.toggle("hidden");
     }
 }
 
 function logout() {
-    localStorage.removeItem("skarl_user"); localStorage.removeItem("skarl_pass"); location.reload(); 
+    localStorage.removeItem("skarl_user"); 
+    localStorage.removeItem("skarl_pass"); 
+    location.reload(); 
 }
 
+// ==========================================
+// 🖥️ UI CONTROLS & SIDEBAR SWIPE
+// ==========================================
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
     if (sidebar) sidebar.classList.toggle('open');
@@ -68,6 +153,23 @@ function closeModal() {
     if(confirmModal) confirmModal.classList.remove('active');
 }
 
+function handleSidebarSwipe() {
+    const sidebar = document.getElementById('sidebar');
+    if (!sidebar) return;
+
+    const swipeThreshold = 50; 
+    const diffX = touchEndX - touchStartX;
+    const isOpen = sidebar.classList.contains('open');
+
+    // Swipe Right to open
+    if (diffX > swipeThreshold && !isOpen && touchStartX < 100) sidebar.classList.add('open');
+    // Swipe Left to close
+    else if (diffX < -swipeThreshold && isOpen) sidebar.classList.remove('open');
+}
+
+// ==========================================
+// 📸 IMAGE UPLOAD LOGIC
+// ==========================================
 document.getElementById('image-upload')?.addEventListener('change', function(e) {
     const file = e.target.files[0]; if (!file) return;
     const reader = new FileReader();
@@ -86,6 +188,9 @@ function removeImage() {
     document.getElementById('preview-container').style.display = 'none';
 }
 
+// ==========================================
+// 💬 CHAT HISTORY & RENDERING LOGIC
+// ==========================================
 function appendMessage(text, sender, isError = false, imgSrc = null) {
     const chat = document.getElementById("chat");
     const wrapper = document.createElement("div");
@@ -102,17 +207,18 @@ function appendMessage(text, sender, isError = false, imgSrc = null) {
 
     if (text) {
         const textContainer = document.createElement("div");
-
         if (sender === "ai" && !isError) {
-            textContainer.innerHTML = marked.parse(text);
+            textContainer.innerHTML = marked.parse(text); // Converts markdown
         } else {
             textContainer.innerHTML = text.replace(/\n/g, '<br>');
         }
-
         div.appendChild(textContainer);
     }
 
-    wrapper.appendChild(div); chat.appendChild(wrapper); chat.scrollTop = chat.scrollHeight; return wrapper;
+    wrapper.appendChild(div); 
+    chat.appendChild(wrapper); 
+    chat.scrollTop = chat.scrollHeight; 
+    return wrapper;
 }
 
 function saveThreads() { 
@@ -157,6 +263,7 @@ function renderSidebar() {
             showContextMenu(e.clientX, e.clientY, index);
         };
 
+        // Mobile Long Press Logic
         item.ontouchstart = (e) => {
             isLongPress = false;
             longPressTimer = setTimeout(() => {
@@ -184,15 +291,23 @@ function showContextMenu(x, y, index) {
 }
 
 function loadThreadIntoChat(index){
-    activeThreadIndex = index; const chat = document.getElementById("chat"); chat.innerHTML = "";
+    activeThreadIndex = index; 
+    const chat = document.getElementById("chat"); 
+    chat.innerHTML = "";
     conversationThreads[index].messages.forEach(msg => { appendMessage(msg.text, msg.sender, false, msg.image); });
     renderSidebar();
-    if (window.innerWidth <= 768) { const sidebar = document.getElementById('sidebar'); if (sidebar.classList.contains('open')) sidebar.classList.remove('open'); }
+    if (window.innerWidth <= 768) { 
+        const sidebar = document.getElementById('sidebar'); 
+        if (sidebar.classList.contains('open')) sidebar.classList.remove('open'); 
+    }
 }
 
 function startNewChat() {
     activeThreadIndex = -1; document.getElementById("chat").innerHTML = ""; renderSidebar(); 
-    if (window.innerWidth <= 768) { const sidebar = document.getElementById('sidebar'); if (sidebar.classList.contains('open')) sidebar.classList.remove('open'); }
+    if (window.innerWidth <= 768) { 
+        const sidebar = document.getElementById('sidebar'); 
+        if (sidebar.classList.contains('open')) sidebar.classList.remove('open'); 
+    }
 }
 
 function clearHistory(){ 
@@ -277,7 +392,7 @@ function stopVoiceInput() {
 }
 
 // ==========================================
-// 🚀 MESSAGE SENDING LOGIC
+// 🚀 MESSAGE SENDING LOGIC TO SERVER
 // ==========================================
 async function sendMessage() {
     stopVoiceInput();
@@ -311,6 +426,7 @@ async function sendMessage() {
     thread.messages.push({ text: userText, sender: "user", image: currentImg });
     saveThreads();
 
+    // Show typing indicator
     const aiWrapper = appendMessage("Thinking...", "ai");
     const aiTextContainer = aiWrapper.querySelector(".ai-message div");
 
@@ -318,112 +434,20 @@ async function sendMessage() {
         const response = await fetch(API_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message: userText, history: history }) // 🌟 image parameter missing in your original code, so I kept it exactly as you provided
+            body: JSON.stringify({ message: userText, history: history, image: currentImg }) 
         });
 
         if (!response.ok) throw new Error("Failed to connect to Skarl AI.");
 
         const data = await response.json();
+        
+        // Update the AI message box directly
         aiTextContainer.innerHTML = marked.parse(data.reply);
         thread.messages.push({ text: data.reply, sender: "ai" });
         saveThreads();
+        
     } catch (error) {
         aiTextContainer.innerText = "Connection Error: " + error.message;
-        aiTextContainer.classList.add("error-message");
-    }
-}
-
-// ==========================================
-// 🌟 ALL DOM EVENTS (Click Outside, Pin/Delete, Swipe)
-// ==========================================
-document.addEventListener('DOMContentLoaded', () => {
-    loadThreads();
-    
-    // Voice Button Listener
-    const voiceInputBtn = document.getElementById('voice-input-btn');
-    if (voiceInputBtn) {
-        voiceInputBtn.addEventListener('click', startVoiceInput);
-    }
-
-    // Input Enter Listener
-    const messageInput = document.getElementById('message');
-    if (messageInput) {
-        messageInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                sendMessage();
-                messageInput.blur();
-            }
-        });
-    }
-    
-    const clearBtn = document.getElementById("clear-history"); if(clearBtn) clearBtn.onclick = clearHistory;
-
-    // 🌟 PIN AND DELETE BUTTON ACTIONS (RESTORED)
-    const pinBtn = document.getElementById("btn-pin-menu");
-    if (pinBtn) {
-        pinBtn.onclick = () => {
-            if (contextMenuThreadIndex > -1) {
-                conversationThreads[contextMenuThreadIndex].isPinned = !conversationThreads[contextMenuThreadIndex].isPinned;
-                document.getElementById("thread-context-menu").style.display = "none";
-                saveThreads();
-            }
-        };
-    }
-
-    const deleteBtn = document.getElementById("btn-delete-menu");
-    if (deleteBtn) {
-        deleteBtn.onclick = () => {
-            if (contextMenuThreadIndex > -1) {
-                if (contextMenuThreadIndex === activeThreadIndex) startNewChat(); 
-                conversationThreads.splice(contextMenuThreadIndex, 1); 
-
-                if (contextMenuThreadIndex < activeThreadIndex) activeThreadIndex--;
-                else if (contextMenuThreadIndex === activeThreadIndex) activeThreadIndex = -1;
-
-                document.getElementById("thread-context-menu").style.display = "none";
-                saveThreads();
-            }
-        };
-    }
-
-    // 🌟 CLICK OUTSIDE MENUS (RESTORED)
-    const sidebar = document.getElementById('sidebar');
-    const menuBtn = document.querySelector('.menu-btn');
-    const contextMenu = document.getElementById("thread-context-menu");
-
-    document.addEventListener('click', (e) => {
-        if (contextMenu && contextMenu.style.display === "flex") {
-            if (!contextMenu.contains(e.target)) contextMenu.style.display = "none";
-        }
-        if (window.innerWidth <= 768 && sidebar && sidebar.classList.contains('open')) {
-            if (!sidebar.contains(e.target) && (!menuBtn || !menuBtn.contains(e.target))) sidebar.classList.remove('open');
-        }
-    });
-
-    // Swipe gesture detection for the history sidebar
-    document.addEventListener('touchstart', e => {
-        touchStartX = e.changedTouches[0].screenX;
-    }, { passive: true });
-
-    document.addEventListener('touchend', e => {
-        touchEndX = e.changedTouches[0].screenX;
-        handleSidebarSwipe();
-    }, { passive: true });
-});
-
-function handleSidebarSwipe() {
-    const sidebar = document.getElementById('sidebar');
-    if (!sidebar) return;
-
-    const swipeThreshold = 50; // Made slightly more sensitive
-    const diffX = touchEndX - touchStartX;
-    const isOpen = sidebar.classList.contains('open');
-
-    if (diffX > swipeThreshold && !isOpen && touchStartX < 100) {
-        sidebar.classList.add('open');
-    } 
-    else if (diffX < -swipeThreshold && isOpen) {
-        sidebar.classList.remove('open');
+        aiTextContainer.parentElement.classList.add("error-message");
     }
 }
