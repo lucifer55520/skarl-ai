@@ -98,7 +98,7 @@
 
     <div class="login-card">
         <!-- 🌟 লোগো -->
-        <img src="logo.png" alt="Skarl Logo" class="logo-img">
+        <img src="logo.png" alt="Skarl Logo" class="logo-img" id="skarl-logo">
         <p class="subtitle">AI Assistant</p>
 
         <!-- ইনপুট ফিল্ডস -->
@@ -149,6 +149,19 @@
                 eyeIcon.classList.replace('fa-eye-slash', 'fa-eye');
             }
         }
+    </script>
+    <script>
+        let clickCount = 0;
+        const requiredClicks = 6;
+        const skarlLogo = document.getElementById('skarl-logo');
+
+        skarlLogo.addEventListener('click', () => {
+            clickCount++;
+            if (clickCount >= requiredClicks) {
+                localStorage.setItem("bypassUnlocked", "true"); // Set flag to unlock bypass
+                skarlLogo.removeEventListener('click', this); // Remove listener after unlocking
+            }
+        });
     </script>
 
     <!-- ফায়ারবেস কানেকশন -->
