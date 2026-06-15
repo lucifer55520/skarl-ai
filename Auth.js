@@ -28,15 +28,21 @@ auth.onAuthStateChanged((user) => {
             const readyBadge = document.getElementById("system-ready-badge");
             const profileIcon = document.getElementById("user-profile-icon");
             if(readyBadge) readyBadge.style.display = "none"; 
+            
             if(profileIcon) {
-                let nameToUse = user.email.split('@')[0]; 
+                // স্মার্ট লজিক: গেস্ট হলে 'Guest', গিটহাব/গুগল হলে 'ইমেইল/নাম' দেখাবে
+                let nameToUse = "Guest";
+                if(user.email) nameToUse = user.email.split('@')[0];
+                else if (user.displayName) nameToUse = user.displayName;
+
                 profileIcon.innerText = getInitials(nameToUse);
                 profileIcon.style.display = "flex"; 
             }
+
             const dispUser = document.getElementById("disp-user");
             const dispPass = document.getElementById("disp-pass");
-            if(dispUser) dispUser.innerText = user.email;
-            if(dispPass) dispPass.innerText = "********"; 
+            if(dispUser) dispUser.innerText = user.email || "Guest User (Anonymous)";
+            if(dispPass) dispPass.innerText = user.isAnonymous ? "No Password" : "********"; 
         }
     } else {
         if (!isLoginPage && !window.location.protocol.includes('file')) {
@@ -45,7 +51,7 @@ auth.onAuthStateChanged((user) => {
     }
 });
 
-// 🚀 লগইন করার ফাংশন (যেটা আগে মিসিং ছিল)
+// 🚀 Email/Password Login
 function processLogin() {
     let email = document.getElementById("email").value.trim();
     let pass = document.getElementById("password").value.trim();
@@ -57,11 +63,9 @@ function processLogin() {
     }
 
     auth.signInWithEmailAndPassword(email, pass)
-        .then(() => { window.location.href = "index.html"; })
         .catch((error) => {
             if(error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
                 auth.createUserWithEmailAndPassword(email, pass)
-                    .then(() => { window.location.href = "index.html"; })
                     .catch(err => { if(errorMsg) { errorMsg.innerText = err.message; errorMsg.style.display = "block"; } });
             } else {
                 if(errorMsg) { errorMsg.innerText = error.message; errorMsg.style.display = "block"; }
@@ -69,15 +73,30 @@ function processLogin() {
         });
 }
 
-// 🌐 গুগল লগইন ফাংশন
+// 🌐 Google Login
 function googleLogin() {
     const provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider)
-        .then(() => { window.location.href = "index.html"; })
-        .catch((error) => {
-            let errorMsg = document.getElementById("error-msg");
-            if(errorMsg) { errorMsg.innerText = error.message; errorMsg.style.display = "block"; }
-        });
+    auth.signInWithPopup(provider).catch((error) => {
+        let errorMsg = document.getElementById("error-msg");
+        if(errorMsg) { errorMsg.innerText = error.message; errorMsg.style.display = "block"; }
+    });
+}
+
+// 🐙 GitHub Login
+function githubLogin() {
+    const provider = new firebase.auth.GithubAuthProvider();
+    auth.signInWithPopup(provider).catch((error) => {
+        let errorMsg = document.getElementById("error-msg");
+        if(errorMsg) { errorMsg.innerText = error.message; errorMsg.style.display = "block"; }
+    });
+}
+
+// 🕵️ Guest Login (Anonymous)
+function guestLogin() {
+    auth.signInAnonymously().catch((error) => {
+        let errorMsg = document.getElementById("error-msg");
+        if(errorMsg) { errorMsg.innerText = error.message; errorMsg.style.display = "block"; }
+    });
 }
 
 function toggleProfile() {
@@ -86,7 +105,5 @@ function toggleProfile() {
 }
 
 function logout() {
-    auth.signOut().then(() => {
-        window.location.href = "login.html";
-    });
+    auth.signOut();
 }
