@@ -1,4 +1,5 @@
-// auth.js
+// Auth.js (Final Version)
+
 const firebaseConfig = {
     apiKey: "AIzaSyB65GFRDmzgxKuC9coyqOlARLdA7CZwYSY",
     authDomain: "skarl-ai.firebaseapp.com",
@@ -8,29 +9,32 @@ const firebaseConfig = {
     appId: "1:21596213609:web:6c503608530d5a9010adf8"
 };
 
+// ফায়ারবেস ইনিশিয়ালাইজ করা
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
 const auth = firebase.auth();
 
+// নামের প্রথম দুই অক্ষর নেওয়ার ফাংশন
 function getInitials(name) {
     let initials = name.trim().split(/[\s_.]+/).map(word => word[0]).join('');
     return initials.substring(0, 2).toUpperCase();
 }
 
+// 🌟 লগইন স্ট্যাটাস চেক করা (মেইন লজিক)
 auth.onAuthStateChanged((user) => {
     const isLoginPage = window.location.pathname.includes("login.html");
 
     if (user) {
         if (isLoginPage) {
-            window.location.href = "index.html";
+            window.location.href = "index.html"; // লগইন থাকলে সোজা চ্যাট পেজে পাঠাবে
         } else {
             const readyBadge = document.getElementById("system-ready-badge");
             const profileIcon = document.getElementById("user-profile-icon");
             if(readyBadge) readyBadge.style.display = "none"; 
             
             if(profileIcon) {
-                // স্মার্ট লজিক: গেস্ট হলে 'Guest', গিটহাব/গুগল হলে 'ইমেইল/নাম' দেখাবে
+                // স্মার্ট লজিক: কে লগইন করেছে তার ওপর ভিত্তি করে নাম দেখাবে
                 let nameToUse = "Guest";
                 if(user.email) nameToUse = user.email.split('@')[0];
                 else if (user.displayName) nameToUse = user.displayName;
@@ -41,12 +45,13 @@ auth.onAuthStateChanged((user) => {
 
             const dispUser = document.getElementById("disp-user");
             const dispPass = document.getElementById("disp-pass");
+            
             if(dispUser) dispUser.innerText = user.email || "Guest User (Anonymous)";
             if(dispPass) dispPass.innerText = user.isAnonymous ? "No Password" : "********"; 
         }
     } else {
         if (!isLoginPage && !window.location.protocol.includes('file')) {
-            window.location.href = "login.html";
+            window.location.href = "login.html"; // লগআউট করলে লগইন পেজে পাঠাবে
         }
     }
 });
@@ -65,6 +70,7 @@ function processLogin() {
     auth.signInWithEmailAndPassword(email, pass)
         .catch((error) => {
             if(error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+                // ইউজার না থাকলে নতুন অ্যাকাউন্ট ক্রিয়েট করবে
                 auth.createUserWithEmailAndPassword(email, pass)
                     .catch(err => { if(errorMsg) { errorMsg.innerText = err.message; errorMsg.style.display = "block"; } });
             } else {
@@ -99,11 +105,13 @@ function guestLogin() {
     });
 }
 
+// প্রোফাইল ড্রপডাউন খোলা/বন্ধ করা
 function toggleProfile() {
     let dropdown = document.getElementById("profile-dropdown");
     if(dropdown) dropdown.classList.toggle("hidden");
 }
 
+// লগআউট করা
 function logout() {
     auth.signOut();
 }
