@@ -4,24 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Skarl AI - Login</title>
-    
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        
+
         body {
             display: flex; justify-content: center; align-items: center; min-height: 100vh;
-            /* 🌟 আপনার ব্যাকগ্রাউন্ড ইমেজ লিংক এখানে দিন */
+            /* 🌟 আপনার ব্যাকগ্রাউন্ড ইমেজ */
             background: url('Background.png') center/cover no-repeat; 
-            background-color: #d1d5db; /* ছবি লোড না হলে এই কালার দেখাবে */
+            background-color: #d1d5db; 
         }
 
-        /* 🌟 Glassmorphism Card (কাঁচের মতো এফেক্ট) */
+        /* 🌟 Glassmorphism Card */
         .login-card {
             background: rgba(255, 255, 255, 0.6);
             backdrop-filter: blur(20px);
@@ -35,135 +32,27 @@
             box-shadow: 0 25px 50px rgba(0, 0, 0, 0.1);
         }
 
-        /* 🌟 Logo Design */
-        .logo-text {
-            font-family: 'Playfair Display', serif;
-            font-size: 3.5rem;
-            color: #111;
-            margin-bottom: 5px;
-            letter-spacing: -1px;
-        }
-        .subtitle {
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: #555;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            margin-bottom: 40px;
-        }
-
-        /* 🌟 Input Fields */
-        .input-group {
-            position: relative;
-            margin-bottom: 16px;
-        }
-        .input-group i {
-            position: absolute;
-            top: 50%;
-            left: 16px;
-            transform: translateY(-50%);
-            color: #6b7280;
-            font-size: 1.1rem;
-        }
-        .input-group input {
-            width: 100%;
-            padding: 16px 45px;
-            border-radius: 12px;
-            border: none;
-            outline: none;
-            background: rgba(255, 255, 255, 0.9);
-            font-size: 0.95rem;
-            color: #111;
-            transition: all 0.3s;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
-        }
-        .input-group input:focus {
-            background: #ffffff;
-            box-shadow: 0 0 0 2px #111;
-        }
-        .toggle-password {
-            position: absolute;
-            top: 50%;
-            right: 16px;
-            left: auto !important;
-            cursor: pointer;
-            color: #6b7280;
-        }
-
-        /* 🌟 Buttons */
-        .btn-login {
-            width: 100%;
-            padding: 16px;
-            border-radius: 12px;
-            border: none;
-            background: #111;
-            color: white;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: 0.3s;
-        }
+        /* ... [আপনার আগের সব CSS একদম হুবহু একই থাকবে] ... */
+        
+        .logo-text { font-family: 'Playfair Display', serif; font-size: 3.5rem; color: #111; margin-bottom: 5px; letter-spacing: -1px; }
+        .subtitle { font-size: 0.75rem; font-weight: 600; color: #555; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 40px; }
+        .input-group { position: relative; margin-bottom: 16px; }
+        .input-group i { position: absolute; top: 50%; left: 16px; transform: translateY(-50%); color: #6b7280; font-size: 1.1rem; }
+        .input-group input { width: 100%; padding: 16px 45px; border-radius: 12px; border: none; outline: none; background: rgba(255, 255, 255, 0.9); font-size: 0.95rem; color: #111; transition: all 0.3s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
+        .input-group input:focus { background: #ffffff; box-shadow: 0 0 0 2px #111; }
+        .toggle-password { position: absolute; top: 50%; right: 16px; left: auto !important; cursor: pointer; color: #6b7280; }
+        .btn-login { width: 100%; padding: 16px; border-radius: 12px; border: none; background: #111; color: white; font-size: 1rem; font-weight: 500; cursor: pointer; margin-top: 10px; transition: 0.3s; }
         .btn-login:hover { background: #333; transform: translateY(-2px); }
-
-        /* 🌟 Divider */
-        .divider {
-            display: flex;
-            align-items: center;
-            margin: 24px 0;
-            color: #6b7280;
-            font-size: 0.85rem;
-        }
-        .divider::before, .divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: rgba(0, 0, 0, 0.1);
-        }
+        .divider { display: flex; align-items: center; margin: 24px 0; color: #6b7280; font-size: 0.85rem; }
+        .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: rgba(0, 0, 0, 0.1); }
         .divider span { padding: 0 10px; }
-
-        /* 🌟 Google Button */
-        .btn-google {
-            width: 100%;
-            padding: 15px;
-            border-radius: 12px;
-            border: none;
-            background: #ffffff;
-            color: #111;
-            font-size: 0.95rem;
-            font-weight: 500;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            transition: 0.3s;
-        }
+        .btn-google { width: 100%; padding: 15px; border-radius: 12px; border: none; background: #ffffff; color: #111; font-size: 0.95rem; font-weight: 500; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: 0.3s; }
         .btn-google:hover { background: #f9fafb; transform: translateY(-2px); }
         .btn-google img { width: 20px; }
-
-        /* 🌟 Footer Text */
-        .footer-text {
-            margin-top: 30px;
-            font-size: 0.85rem;
-            color: #4b5563;
-        }
-        .footer-text a {
-            color: #111;
-            font-weight: 600;
-            text-decoration: none;
-            cursor: pointer;
-        }
+        .footer-text { margin-top: 30px; font-size: 0.85rem; color: #4b5563; }
+        .footer-text a { color: #111; font-weight: 600; text-decoration: none; cursor: pointer; }
         .footer-text a:hover { text-decoration: underline; }
-
-        #error-msg {
-            color: #ef4444;
-            font-size: 0.85rem;
-            margin-top: 15px;
-            display: none;
-            font-weight: 500;
-        }
+        #error-msg { color: #ef4444; font-size: 0.85rem; margin-top: 15px; display: none; font-weight: 500; }
     </style>
 </head>
 <body>
@@ -197,19 +86,6 @@
     </div>
 
     <script>
-        // 🔥 Firebase Setup
-        const firebaseConfig = {
-            apiKey: "AIzaSyB65GFRDmzgxKuC9coyqOlARLdA7CZwYSY",
-            authDomain: "skarl-ai.firebaseapp.com",
-            projectId: "skarl-ai",
-            storageBucket: "skarl-ai.firebasestorage.app",
-            messagingSenderId: "21596213609",
-            appId: "1:21596213609:web:6c503608530d5a9010adf8"
-        };
-        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
-        const auth = firebase.auth();
-
-        // 👁️ Password Visibility Toggle
         function togglePass() {
             const passInput = document.getElementById('password');
             const eyeIcon = document.getElementById('togglePassword');
@@ -221,44 +97,11 @@
                 eyeIcon.classList.replace('fa-eye-slash', 'fa-eye');
             }
         }
-
-        // 🚀 Email & Password Login / Signup
-        function processLogin() {
-            let email = document.getElementById("email").value.trim();
-            let pass = document.getElementById("password").value.trim();
-            let errorMsg = document.getElementById("error-msg");
-
-            if(email === "" || pass === "") { 
-                errorMsg.innerText = "Please enter valid credentials."; 
-                errorMsg.style.display = "block"; 
-                return; 
-            }
-
-            auth.signInWithEmailAndPassword(email, pass)
-                .then(() => { window.location.href = "index.html"; })
-                .catch((error) => {
-                    // Auto-Signup if account doesn't exist
-                    if(error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-                        auth.createUserWithEmailAndPassword(email, pass)
-                            .then(() => { window.location.href = "index.html"; })
-                            .catch(err => { errorMsg.innerText = err.message; errorMsg.style.display = "block"; });
-                    } else {
-                        errorMsg.innerText = error.message; errorMsg.style.display = "block";
-                    }
-                });
-        }
-
-        // 🌐 Google Login Logic
-        function googleLogin() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider)
-                .then((result) => {
-                    window.location.href = "index.html";
-                }).catch((error) => {
-                    document.getElementById("error-msg").innerText = error.message;
-                    document.getElementById("error-msg").style.display = "block";
-                });
-        }
     </script>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="auth.js"></script>
+
 </body>
 </html>
