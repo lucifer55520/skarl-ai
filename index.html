@@ -176,6 +176,7 @@
   @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.7; } 100% { transform: scale(1); opacity: 1; } }
 
+  /* 🌟 Mobile Responsive Fix (নিচের ইনপুট বক্সটি ঠিক করা হয়েছে) */
   @media (max-width: 768px) {
     .main-layout { display: flex; position: relative; }
     .history-sidebar { position: absolute; left: -280px; top: 0; height: 100%; width: 280px; z-index: 1000; transition: left 0.3s ease; box-shadow: 4px 0 15px rgba(0,0,0,0.5); }
@@ -183,7 +184,14 @@
     header { justify-content: flex-start; gap: 15px; padding: 12px 16px; }
     .menu-btn { display: block; }
     .header-right { margin-left: auto; }
-    .input-area { padding: 12px 16px; padding-bottom: 20px; gap: 8px; }
+    
+    /* 🌟 এই অংশে padding-bottom বাড়ানো হয়েছে যাতে বক্সটি ওপরে উঠে আসে */
+    .input-area { 
+        padding: 12px 16px; 
+        padding-bottom: calc(25px + env(safe-area-inset-bottom)); 
+        gap: 8px; 
+    }
+    
     .chat-watermark img { width: 260px; }
     .ai-message { max-width: 95%; } 
   }
