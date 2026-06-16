@@ -118,7 +118,6 @@ document.getElementById('image-upload')?.addEventListener('change', function(e) 
 
     const reader = new FileReader();
     reader.onload = function(event) {
-        // 🌟 Auto-Compressor: Resizes image to prevent LocalStorage 5MB Crash!
         const img = new Image();
         img.onload = function() {
             const canvas = document.createElement("canvas");
@@ -140,13 +139,12 @@ document.getElementById('image-upload')?.addEventListener('change', function(e) 
             }
             canvas.width = width;
             canvas.height = height;
-            
+
             const ctx = canvas.getContext("2d");
             ctx.drawImage(img, 0, 0, width, height);
 
-            // Compress to 70% Quality JPEG
             selectedImageBase64 = canvas.toDataURL("image/jpeg", 0.7); 
-            
+
             document.getElementById('preview-container').style.display = 'block';
             document.getElementById('image-preview').src = selectedImageBase64;
         };
@@ -300,7 +298,7 @@ function confirmClear(){
 }
 
 // ==========================================
-// 🎤 VOICE RECOGNITION LOGIC
+// 🎤 VOICE RECOGNITION LOGIC (Voice to Text)
 // ==========================================
 function startVoiceInput() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -371,7 +369,7 @@ function stopVoiceInput() {
 }
 
 // ==========================================
-// 🚀 MESSAGE SENDING & TYPEWRITER LOGIC (UPDATED)
+// 🚀 MESSAGE SENDING, TYPEWRITER & TEXT-TO-SPEECH
 // ==========================================
 async function sendMessage() {
     stopVoiceInput();
@@ -405,11 +403,9 @@ async function sendMessage() {
     thread.messages.push({ text: userText, sender: "user", image: currentImg });
     saveThreads();
 
-    // Show initial typing indicator
     const aiWrapper = appendMessage("Thinking...", "ai");
     const aiTextContainer = aiWrapper.querySelector(".ai-message div");
-    
-    // Save current thread index to prevent bugs if user switches chat during generation
+
     const currentThreadIndexAtStart = activeThreadIndex;
 
     try {
@@ -424,33 +420,43 @@ async function sendMessage() {
         const data = await response.json();
         const fullReply = data.reply;
 
-        // Save immediately to history array
         thread.messages.push({ text: fullReply, sender: "ai" });
         saveThreads();
+
+        // 🔊 START TEXT-TO-SPEECH (AI Voice Output)
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel(); 
+            let cleanText = fullReply.replace(/[*#`_]/g, ''); 
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            
+            const isBengali = /[\u0980-\u09FF]/.test(cleanText);
+            utterance.lang = isBengali ? 'bn-IN' : 'en-US';
+            utterance.rate = 1.0; 
+            
+            window.speechSynthesis.speak(utterance);
+        }
 
         // 🌟 START SMART TYPEWRITER ANIMATION 🌟
         aiTextContainer.innerHTML = ""; 
         let i = 0;
         let currentText = "";
-        
+
         function typeWriter() {
-            // Stop typing if user switched to another chat thread
-            if (activeThreadIndex !== currentThreadIndexAtStart) return; 
+            if (activeThreadIndex !== currentThreadIndexAtStart) {
+                window.speechSynthesis.cancel(); 
+                return; 
+            }
 
             if (i < fullReply.length) {
-                // Takes 2 to 4 characters at a time for a fast, natural typing speed
                 let chunkSize = Math.floor(Math.random() * 3) + 2; 
                 currentText += fullReply.substring(i, i + chunkSize);
-                
-                // Live parse Markdown to HTML
                 aiTextContainer.innerHTML = marked.parse(currentText);
-                
-                // Auto-scroll to bottom while typing
+
                 const chatBox = document.getElementById("chat");
                 chatBox.scrollTop = chatBox.scrollHeight;
-                
+
                 i += chunkSize;
-                setTimeout(typeWriter, 15); // Adjust this number (e.g., 10 or 20) to change typing speed
+                setTimeout(typeWriter, 15); 
             }
         }
         typeWriter();
