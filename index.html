@@ -22,13 +22,12 @@
 
   body {
     font-family: 'Inter', -apple-system, sans-serif;
-    /* 🌟 Background Image Update: ফাইলের নাম background.jpg দেওয়া হলো */
     background-image: url('background.jpg');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     background-attachment: fixed;
-    background-color: #f8fafc; /* Fallback color */
+    background-color: #f8fafc; 
     display: flex; justify-content: center; align-items: center;
     height: 100dvh; overflow: hidden; color: #0f172a; 
   }
@@ -39,9 +38,9 @@
     background: transparent; overflow: hidden;
   }
 
-  /* 🌌 Dark Sidebar (Black Box, White Text) */
+  /* 🌌 Dark Sidebar */
   .history-sidebar {
-    background-color: rgba(10, 10, 10, 0.90); /* গাঢ় কালো */
+    background-color: rgba(10, 10, 10, 0.90); 
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
     color: #ffffff; padding: 24px 20px;
@@ -51,7 +50,6 @@
   .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
   .sidebar-header h3 { margin: 0; color: #ffffff; font-size: 1.2rem; font-weight: 700; letter-spacing: 0.5px; }
 
-  /* 🔳 New Chat & Clear History Buttons (Black Box, White Border) */
   #new-chat-btn, #clear-history {
     width: 100%; padding: 14px; margin-bottom: 15px;
     background: #000000;
@@ -63,48 +61,38 @@
   #new-chat-btn { margin-bottom: 24px; justify-content: flex-start; padding-left: 20px; }
   
   #new-chat-btn:hover, #clear-history:hover { 
-    background: #1a1a1a;
-    border-color: #ffffff;
-    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
-    transform: translateY(-1px);
+    background: #1a1a1a; border-color: #ffffff;
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1); transform: translateY(-1px);
   }
 
   #history-list { flex-grow: 1; overflow-y: auto; scrollbar-width: none; }
   #history-list::-webkit-scrollbar { display: none; }
 
-  /* 📝 History Items Text (White) */
   .history-item {
     padding: 12px 16px; margin-bottom: 10px; background-color: transparent; color: #e2e8f0; 
     font-weight: 500; border-radius: 10px; cursor: pointer; font-size: 0.95rem; 
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap; transition: all 0.25s ease; border: 1px solid transparent;
   }
   .history-item:hover { background-color: rgba(255, 255, 255, 0.1); color: #ffffff; }
-  .history-item.active { 
-    background-color: rgba(255, 255, 255, 0.15); 
-    color: #ffffff; 
-    border-color: rgba(255, 255, 255, 0.3); 
-    font-weight: 600;
-  }
+  .history-item.active { background-color: rgba(255, 255, 255, 0.15); color: #ffffff; border-color: rgba(255, 255, 255, 0.3); font-weight: 600; }
   .history-item.pinned { border-left: 3px solid #8b5cf6; padding-left: 13px; }
 
-  /* 🧊 Main Chat Interface - Blur reduced to show background image */
+  /* 🧊 Main Chat Interface */
   .chat-container { 
-    background: rgba(255, 255, 255, 0.1); /* অনেক হালকা ট্রান্সপারেন্সি */
-    backdrop-filter: blur(3px); /* Blur কমানো হলো যাতে পেছনের ছবি দেখা যায় */
-    -webkit-backdrop-filter: blur(3px);
+    background: rgba(255, 255, 255, 0.1); 
+    backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
     display: flex; flex-direction: column; overflow: hidden; position: relative; width: 100%; height: 100%; 
   }
 
   header {
     padding: 16px 32px; background: rgba(255, 255, 255, 0.65); border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-    display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 10; 
-    backdrop-filter: blur(10px);
+    display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 10; backdrop-filter: blur(10px);
   }
   .menu-btn { display: none; background: none; border: none; color: #64748b; font-size: 1.6rem; cursor: pointer; padding: 0; transition: color 0.2s; }
   .menu-btn:hover { color: #0f172a; }
   
-  /* 🌟 Header Logo Boro Kora Holo (Bigger Logo) */
-  .header-logo { height: 56px; max-height: 60px; width: auto; object-fit: contain; margin-left: 5px; }
+  /* 🌟 লোগো আগের চেয়ে ছোট এবং মানানসই করা হয়েছে */
+  .header-logo { height: 42px; max-height: 48px; width: auto; object-fit: contain; margin-left: 5px; }
   
   .header-right { display: flex; align-items: center; gap: 16px; }
 
@@ -124,7 +112,7 @@
   .hidden { display: none !important; }
 
   /* 🌟 Custom Light Modals */
-  .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 9999; }
+  .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 9999; }
   .modal-overlay.active { display: flex; animation: fadeInModal 0.2s ease-out forwards; }
   .login-box, .modal-box { background: rgba(255, 255, 255, 0.95); padding: 32px 28px; border-radius: 20px; text-align: center; color: #1e293b; width: 90%; max-width: 360px; box-shadow: 0px 20px 40px rgba(0, 0, 0, 0.15); border: 1px solid rgba(0, 0, 0, 0.05); transform: scale(0.9); animation: popIn 0.2s ease-out forwards; backdrop-filter: blur(15px); }
   .login-box h2, .modal-box h3 { margin-bottom: 16px; color: #0f172a; font-weight: 800; font-size: 1.4rem; }
@@ -145,16 +133,10 @@
   #thread-context-menu button:hover { background: rgba(0, 0, 0, 0.04); color: #0f172a; }
   #btn-delete-menu { color: #ef4444 !important; }
 
-  /* 🌟 Center Watermark */
   .chat-watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 0; pointer-events: none; display: flex; justify-content: center; align-items: center; width: 100%; }
   .chat-watermark img { width: 340px; opacity: 0.10; filter: grayscale(100%); }
 
-  /* 🌟 Chat Layout */
-  #chat { 
-    flex-grow: 1; padding: 32px; overflow-y: auto; background-color: transparent; position: relative; 
-    z-index: 1; display: flex; flex-direction: column; gap: 24px; scrollbar-width: thin; 
-    scrollbar-color: rgba(0, 0, 0, 0.1) transparent; min-height: 0;
-  }
+  #chat { flex-grow: 1; padding: 32px; overflow-y: auto; background-color: transparent; position: relative; z-index: 1; display: flex; flex-direction: column; gap: 24px; scrollbar-width: thin; scrollbar-color: rgba(0, 0, 0, 0.1) transparent; min-height: 0; }
   #chat::-webkit-scrollbar { width: 6px; }
   #chat::-webkit-scrollbar-thumb { background-color: rgba(0, 0, 0, 0.15); border-radius: 10px; }
 
@@ -163,17 +145,8 @@
   .preview-box img { height: 65px; border-radius: 10px; border: 1px solid rgba(0, 0, 0, 0.1); background: #ffffff; padding: 2px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
   .remove-img-btn { position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
 
-  /* 🌟 Premium Input Area */
-  .input-area { 
-    padding: 20px 32px 32px 32px; background: transparent; display: flex; gap: 14px; align-items: center; 
-    position: relative; z-index: 10; flex-shrink: 0; border-top: 1px solid rgba(0, 0, 0, 0.06);
-  }
-
-  .upload-btn, .voice-input-btn { 
-    background: rgba(255, 255, 255, 0.85); color: #64748b; border: 1px solid rgba(0, 0, 0, 0.08); 
-    border-radius: 50%; width: 48px; height: 48px; display: flex; justify-content: center; align-items: center; 
-    cursor: pointer; transition: all 0.2s ease; flex-shrink: 0; box-shadow: 0 4px 15px rgba(0,0,0,0.04);
-  }
+  .input-area { padding: 20px 32px 32px 32px; background: transparent; display: flex; gap: 14px; align-items: center; position: relative; z-index: 10; flex-shrink: 0; border-top: 1px solid rgba(0, 0, 0, 0.06); }
+  .upload-btn, .voice-input-btn { background: rgba(255, 255, 255, 0.85); color: #64748b; border: 1px solid rgba(0, 0, 0, 0.08); border-radius: 50%; width: 48px; height: 48px; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s ease; flex-shrink: 0; box-shadow: 0 4px 15px rgba(0,0,0,0.04); }
   .upload-btn { font-size: 1.3rem; }
   .upload-btn:hover, .voice-input-btn:hover { background: #ffffff; color: #0f172a; box-shadow: 0 6px 15px rgba(0,0,0,0.08); transform: translateY(-1px); }
   
@@ -183,39 +156,19 @@
   .voice-input-btn.listening .stop-icon { display: block; }
   .voice-input-btn.listening { color: #ef4444; background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); animation: pulse 1.2s infinite; }
 
-  .input-wrapper { 
-    display: flex; flex-grow: 1; background: rgba(255, 255, 255, 0.9); border-radius: 26px; 
-    align-items: center; padding: 4px 16px; border: 1px solid rgba(0, 0, 0, 0.08); min-width: 0; 
-    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); 
-    box-shadow: 0 6px 25px rgba(0,0,0,0.05); transition: all 0.3s ease; 
-  }
+  .input-wrapper { display: flex; flex-grow: 1; background: rgba(255, 255, 255, 0.9); border-radius: 26px; align-items: center; padding: 4px 16px; border: 1px solid rgba(0, 0, 0, 0.08); min-width: 0; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 6px 25px rgba(0,0,0,0.05); transition: all 0.3s ease; }
   .input-wrapper:focus-within { border-color: rgba(139, 92, 246, 0.4); box-shadow: 0 0 15px rgba(139, 92, 246, 0.15); background: #ffffff; }
 
   #message { flex-grow: 1; background: transparent; border: none; outline: none; padding: 15px 10px; font-size: 1.05rem; color: #0f172a; min-width: 0; font-weight: 500; }
   #message::placeholder { color: #94a3b8; font-weight: 400; }
 
-  button.send-btn { background: transparent; color: #64748b; border: none; cursor: pointer; font-size: 1.4rem; padding: 6px; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; flex-shrink: 0; min-width: 44px; }
-  button.send-btn:hover { color: #8b5cf6; transform: scale(1.1) translateX(2px); }
+  button.send-btn { background: transparent; color: #64748b; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; flex-shrink: 0; padding: 8px; border-radius: 50%; }
+  button.send-btn:hover { background: rgba(0,0,0,0.05); transform: scale(1.05); }
 
-  /* 💬 Message Bubbles */
   .message-wrapper { display: flex; width: 100%; animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
-
-  .user-message { 
-    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); 
-    color: #ffffff; padding: 14px 20px; border-radius: 22px 22px 4px 22px; 
-    margin-left: auto; max-width: 75%; font-weight: 400; 
-    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.25);
-    line-height: 1.5;
-  }
+  .user-message { background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); color: #ffffff; padding: 14px 20px; border-radius: 22px 22px 4px 22px; margin-left: auto; max-width: 75%; font-weight: 400; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.25); line-height: 1.5; }
   .user-img-msg { max-width: 220px; border-radius: 12px; margin-bottom: 10px; display: block; border: 1px solid rgba(255,255,255,0.4); }
-
-  .ai-message { 
-    background-color: rgba(255, 255, 255, 0.95); border: 1px solid rgba(0, 0, 0, 0.05); 
-    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); 
-    color: #334155; padding: 16px 22px; border-radius: 22px 22px 22px 4px; 
-    margin-right: auto; max-width: 85%; line-height: 1.65; 
-    box-shadow: 0 4px 15px rgba(0,0,0,0.04); 
-  }
+  .ai-message { background-color: rgba(255, 255, 255, 0.95); border: 1px solid rgba(0, 0, 0, 0.05); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); color: #334155; padding: 16px 22px; border-radius: 22px 22px 22px 4px; margin-right: auto; max-width: 85%; line-height: 1.65; box-shadow: 0 4px 15px rgba(0,0,0,0.04); }
   .ai-message p { margin-bottom: 12px; }
   .ai-message p:last-child { margin-bottom: 0; }
   .ai-message h1, .ai-message h2, .ai-message h3, .ai-message h4 { margin-top: 20px; margin-bottom: 12px; color: #0f172a; font-weight: 800; }
@@ -234,7 +187,6 @@
   @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.06); opacity: 0.8; } 100% { transform: scale(1); } }
 
-  /* 🌟 Mobile Responsiveness */
   @media (max-width: 768px) {
     .main-layout { display: flex; position: relative; }
     .history-sidebar { position: absolute; left: -290px; top: 0; height: 100%; width: 290px; z-index: 1000; transition: left 0.35s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 10px 0 30px rgba(0,0,0,0.2); background-color: rgba(10, 10, 10, 0.95); }
@@ -242,16 +194,8 @@
     header { justify-content: flex-start; gap: 16px; padding: 16px 20px; background: rgba(255, 255, 255, 0.85); }
     .menu-btn { display: block; }
     .header-right { margin-left: auto; }
-
     #chat { padding: 20px; gap: 20px; }
-    .input-area { 
-        padding: 14px 20px; 
-        padding-bottom: calc(24px + env(safe-area-inset-bottom)); 
-        gap: 10px; 
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(15px);
-    }
-
+    .input-area { padding: 14px 20px; padding-bottom: calc(24px + env(safe-area-inset-bottom)); gap: 10px; background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(15px); }
     .chat-watermark img { width: 240px; }
     .ai-message { max-width: 100%; padding: 14px 18px; } 
     .user-message { max-width: 85%; }
@@ -274,10 +218,7 @@
   <div class="chat-container">
     <header>
       <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-      
-      <!-- 🌟 Logo size increased via CSS -->
       <img src="logo.png" alt="Skarl AI" class="header-logo">
-      
       <div class="header-right">
         <div class="system-status" id="system-ready-badge">READY</div>
         <div id="user-profile-icon" style="display: none;" onclick="toggleProfile(event)"></div>
@@ -321,7 +262,16 @@
 
       <div class="input-wrapper">
          <input id="message" placeholder="Ask anything...">
-         <button class="send-btn" onclick="sendMessage(); document.getElementById('message').blur();">➤</button>
+         <!-- 🌟 NEW: Dynamic Send/Stop Button -->
+         <button class="send-btn" id="send-btn" onclick="toggleSendStop(); document.getElementById('message').blur();">
+            <svg id="send-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+            <svg id="stop-icon" style="display: none; color: #ef4444;" width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                <rect x="6" y="6" width="12" height="12" rx="2"></rect>
+            </svg>
+         </button>
       </div>
     </div>
   </div>
