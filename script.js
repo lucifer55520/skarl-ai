@@ -12,6 +12,11 @@ let touchEndX = 0;
 let recognition;
 let isListening = false;
 
+// 🌟 NEW: Stop Generation Variables
+let isGenerating = false;
+let abortController = null;
+let stopTypingFlag = false;
+
 const API_URL = "https://suryabiswas018-skarl-ai.hf.space/chat";
 
 // ==========================================
@@ -28,7 +33,7 @@ window.onload = function() {
         messageInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
-                sendMessage();
+                toggleSendStop(); // 🌟 Updated to use Toggle logic
                 messageInput.blur();
             }
         });
@@ -127,18 +132,11 @@ document.getElementById('image-upload')?.addEventListener('change', function(e) 
             let height = img.height;
 
             if (width > height) {
-                if (width > MAX_WIDTH) {
-                    height *= MAX_WIDTH / width;
-                    width = MAX_WIDTH;
-                }
+                if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
             } else {
-                if (height > MAX_HEIGHT) {
-                    width *= MAX_HEIGHT / height;
-                    height = MAX_HEIGHT;
-                }
+                if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
             }
-            canvas.width = width;
-            canvas.height = height;
+            canvas.width = width; canvas.height = height;
 
             const ctx = canvas.getContext("2d");
             ctx.drawImage(img, 0, 0, width, height);
@@ -196,11 +194,8 @@ function appendMessage(text, sender, isError = false, imgSrc = null) {
 }
 
 function saveThreads() { 
-    try {
-        localStorage.setItem("skyAiConversationThreads", JSON.stringify(conversationThreads)); 
-    } catch (e) {
-        console.warn("⚠️ LocalStorage limit reached! Cannot save more history.");
-    }
+    try { localStorage.setItem("skyAiConversationThreads", JSON.stringify(conversationThreads)); } 
+    catch (e) { console.warn("⚠️ LocalStorage limit reached! Cannot save more history."); }
     renderSidebar(); 
 }
 
@@ -268,6 +263,7 @@ function showContextMenu(x, y, index) {
 }
 
 function loadThreadIntoChat(index){
+    if (isGenerating) stopGeneration(); // 🌟 Stop generation if user switches chat
     activeThreadIndex = index; 
     const chat = document.getElementById("chat"); 
     chat.innerHTML = "";
@@ -280,6 +276,7 @@ function loadThreadIntoChat(index){
 }
 
 function startNewChat() {
+    if (isGenerating) stopGeneration(); // 🌟 Stop generation if user starts new chat
     activeThreadIndex = -1; document.getElementById("chat").innerHTML = ""; renderSidebar(); 
     if (window.innerWidth <= 768) { 
         const sidebar = document.getElementById('sidebar'); 
@@ -293,79 +290,96 @@ function clearHistory(){
 }
 
 function confirmClear(){
+    if (isGenerating) stopGeneration();
     conversationThreads = []; activeThreadIndex = -1; localStorage.removeItem("skyAiConversationThreads");
     document.getElementById("chat").innerHTML = ""; renderSidebar(); closeModal(); 
 }
 
 // ==========================================
-// 🎤 VOICE RECOGNITION LOGIC (Voice to Text)
+// 🎤 VOICE RECOGNITION LOGIC
 // ==========================================
 function startVoiceInput() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
     if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
-        alert("Voice input requires an HTTPS connection to work on a public domain.");
-        return;
+        alert("Voice input requires an HTTPS connection to work on a public domain."); return;
     }
-
     if (!SpeechRecognition) {
-        alert("Your browser does not support Web Speech API. Please use Google Chrome.");
-        return;
+        alert("Your browser does not support Web Speech API. Please use Google Chrome."); return;
     }
-
     if (isListening) {
-        stopVoiceInput();
-        return;
+        stopVoiceInput(); return;
     }
 
     recognition = new SpeechRecognition();
-    recognition.continuous = false;
-    recognition.interimResults = true;
-    recognition.lang = 'en-US';
+    recognition.continuous = false; recognition.interimResults = true; recognition.lang = 'en-US';
 
     const messageInput = document.getElementById('message');
     const voiceInputBtn = document.getElementById('voice-input-btn');
 
     recognition.onstart = function() {
-        isListening = true;
-        voiceInputBtn.classList.add('listening');
-        messageInput.placeholder = "Listening...";
+        isListening = true; voiceInputBtn.classList.add('listening'); messageInput.placeholder = "Listening...";
     };
 
     recognition.onresult = function(event) {
-        let interimTranscript = '';
-        let finalTranscript = '';
-
+        let interimTranscript = ''; let finalTranscript = '';
         for (let i = event.resultIndex; i < event.results.length; ++i) {
-            if (event.results[i].isFinal) {
-                finalTranscript += event.results[i][0].transcript;
-            } else {
-                interimTranscript += event.results[i][0].transcript;
-            }
+            if (event.results[i].isFinal) finalTranscript += event.results[i][0].transcript;
+            else interimTranscript += event.results[i][0].transcript;
         }
         messageInput.value = finalTranscript || interimTranscript;
     };
 
     recognition.onerror = function(event) {
-        console.error("Speech recognition error:", event.error);
-        stopVoiceInput();
+        console.error("Speech recognition error:", event.error); stopVoiceInput();
         alert("Speech recognition error: " + event.error);
     };
 
-    recognition.onend = function() {
-        stopVoiceInput();
-    };
-
+    recognition.onend = function() { stopVoiceInput(); };
     recognition.start();
 }
 
 function stopVoiceInput() {
     if (recognition && isListening) {
-        recognition.stop();
-        isListening = false;
+        recognition.stop(); isListening = false;
         document.getElementById('voice-input-btn').classList.remove('listening');
         document.getElementById('message').placeholder = "Ask anything...";
     }
+}
+
+// ==========================================
+// 🚀 DYNAMIC STOP/SEND LOGIC (NEW)
+// ==========================================
+function toggleSendStop() {
+    if (isGenerating) {
+        stopGeneration();
+    } else {
+        sendMessage();
+    }
+}
+
+function updateSendButtonUI(generating) {
+    const sendIcon = document.getElementById('send-icon');
+    const stopIcon = document.getElementById('stop-icon');
+    
+    // Check if these elements exist before modifying them to avoid errors
+    if(sendIcon && stopIcon) {
+        if (generating) {
+            sendIcon.style.display = 'none';
+            stopIcon.style.display = 'block';
+        } else {
+            sendIcon.style.display = 'block';
+            stopIcon.style.display = 'none';
+        }
+    }
+}
+
+function stopGeneration() {
+    if (abortController) abortController.abort(); // Cancel backend request if ongoing
+    stopTypingFlag = true;
+    isGenerating = false;
+    updateSendButtonUI(false);
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel(); // Stop talking
 }
 
 // ==========================================
@@ -408,42 +422,53 @@ async function sendMessage() {
 
     const currentThreadIndexAtStart = activeThreadIndex;
 
+    // 🌟 Set UI to Generating mode
+    isGenerating = true;
+    stopTypingFlag = false;
+    updateSendButtonUI(true);
+    abortController = new AbortController();
+
     try {
         const response = await fetch(API_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message: userText, history: history, image: currentImg }) 
+            body: JSON.stringify({ message: userText, history: history, image: currentImg }),
+            signal: abortController.signal // 🌟 Attach abort signal
         });
 
         if (!response.ok) throw new Error("Failed to connect to Skarl AI Server.");
 
         const data = await response.json();
-        const fullReply = data.reply;
+        let fullReply = data.reply;
 
-        thread.messages.push({ text: fullReply, sender: "ai" });
-        saveThreads();
-
-        // 🔊 START TEXT-TO-SPEECH (AI Voice Output)
-        if ('speechSynthesis' in window) {
+        // 🔊 Text-To-Speech Logic
+        if (!stopTypingFlag && 'speechSynthesis' in window) {
             window.speechSynthesis.cancel(); 
             let cleanText = fullReply.replace(/[*#`_]/g, ''); 
             const utterance = new SpeechSynthesisUtterance(cleanText);
-            
             const isBengali = /[\u0980-\u09FF]/.test(cleanText);
             utterance.lang = isBengali ? 'bn-IN' : 'en-US';
             utterance.rate = 1.0; 
-            
             window.speechSynthesis.speak(utterance);
         }
 
-        // 🌟 START SMART TYPEWRITER ANIMATION 🌟
+        // 🌟 TYPEWRITER ANIMATION 
         aiTextContainer.innerHTML = ""; 
         let i = 0;
         let currentText = "";
 
         function typeWriter() {
-            if (activeThreadIndex !== currentThreadIndexAtStart) {
+            // If user clicked Stop or switched chats during typing
+            if (activeThreadIndex !== currentThreadIndexAtStart || stopTypingFlag) {
                 window.speechSynthesis.cancel(); 
+                isGenerating = false;
+                updateSendButtonUI(false);
+                
+                // Save whatever was typed so far to history
+                if (stopTypingFlag && activeThreadIndex === currentThreadIndexAtStart) {
+                    thread.messages.push({ text: currentText + " 🛑 [Stopped]", sender: "ai" });
+                    saveThreads();
+                }
                 return; 
             }
 
@@ -457,12 +482,27 @@ async function sendMessage() {
 
                 i += chunkSize;
                 setTimeout(typeWriter, 15); 
+            } else {
+                // Done generating
+                isGenerating = false;
+                updateSendButtonUI(false);
+                thread.messages.push({ text: fullReply, sender: "ai" });
+                saveThreads();
             }
         }
         typeWriter();
 
     } catch (error) {
-        aiTextContainer.innerText = "Connection Error: " + error.message;
-        aiTextContainer.parentElement.classList.add("error-message");
+        // Handle Abort cleanly without showing a scary error
+        if (error.name === 'AbortError') {
+            aiTextContainer.innerHTML = "<em>Generation stopped by user. 🛑</em>";
+            thread.messages.push({ text: "Generation stopped by user.", sender: "ai" });
+            saveThreads();
+        } else {
+            aiTextContainer.innerText = "Connection Error: " + error.message;
+            aiTextContainer.parentElement.classList.add("error-message");
+        }
+        isGenerating = false;
+        updateSendButtonUI(false);
     }
 }
