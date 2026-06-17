@@ -12,10 +12,12 @@ let touchEndX = 0;
 let recognition;
 let isListening = false;
 
-// 🌟 NEW: Stop Generation Variables
-let isGenerating = false;
+// 🌟 NEW: Smart Generation & Voice Variables
+let isGeneratingText = false;
+let isSpeakingTTS = false;
 let abortController = null;
 let stopTypingFlag = false;
+let lastInputWasVoice = false; // টাইপিং নাকি ভয়েস, তা ট্র্যাক করার জন্য
 
 const API_URL = "https://suryabiswas018-skarl-ai.hf.space/chat";
 
@@ -30,10 +32,15 @@ window.onload = function() {
 
     const messageInput = document.getElementById('message');
     if (messageInput) {
+        // 🌟 ইউজার নিজে হাতে কিছু টাইপ করলে ভয়েস ফ্ল্যাগটি false হয়ে যাবে
+        messageInput.addEventListener('input', () => {
+            if (!isListening) lastInputWasVoice = false; 
+        });
+
         messageInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
-                toggleSendStop(); // 🌟 Updated to use Toggle logic
+                toggleSendStop(); 
                 messageInput.blur();
             }
         });
@@ -263,7 +270,7 @@ function showContextMenu(x, y, index) {
 }
 
 function loadThreadIntoChat(index){
-    if (isGenerating) stopGeneration(); // 🌟 Stop generation if user switches chat
+    if (isGeneratingText || isSpeakingTTS) stopGeneration(); 
     activeThreadIndex = index; 
     const chat = document.getElementById("chat"); 
     chat.innerHTML = "";
@@ -276,7 +283,7 @@ function loadThreadIntoChat(index){
 }
 
 function startNewChat() {
-    if (isGenerating) stopGeneration(); // 🌟 Stop generation if user starts new chat
+    if (isGeneratingText || isSpeakingTTS) stopGeneration(); 
     activeThreadIndex = -1; document.getElementById("chat").innerHTML = ""; renderSidebar(); 
     if (window.innerWidth <= 768) { 
         const sidebar = document.getElementById('sidebar'); 
@@ -290,7 +297,7 @@ function clearHistory(){
 }
 
 function confirmClear(){
-    if (isGenerating) stopGeneration();
+    if (isGeneratingText || isSpeakingTTS) stopGeneration();
     conversationThreads = []; activeThreadIndex = -1; localStorage.removeItem("skyAiConversationThreads");
     document.getElementById("chat").innerHTML = ""; renderSidebar(); closeModal(); 
 }
@@ -328,6 +335,9 @@ function startVoiceInput() {
             else interimTranscript += event.results[i][0].transcript;
         }
         messageInput.value = finalTranscript || interimTranscript;
+        
+        // 🌟 ইউজার ভয়েস ব্যবহার করেছে, তাই ফ্ল্যাগটি true করা হলো
+        lastInputWasVoice = true; 
     };
 
     recognition.onerror = function(event) {
@@ -348,23 +358,24 @@ function stopVoiceInput() {
 }
 
 // ==========================================
-// 🚀 DYNAMIC STOP/SEND LOGIC (NEW)
+// 🚀 DYNAMIC STOP/SEND LOGIC (FIXED)
 // ==========================================
 function toggleSendStop() {
-    if (isGenerating) {
+    // 🌟 টেক্সট লেখা অথবা মুখে বলা যেকোনো একটা চললেই Stop বাটন কাজ করবে
+    if (isGeneratingText || isSpeakingTTS) {
         stopGeneration();
     } else {
         sendMessage();
     }
 }
 
-function updateSendButtonUI(generating) {
+function updateSendButtonUI() {
     const sendIcon = document.getElementById('send-icon');
     const stopIcon = document.getElementById('stop-icon');
-    
-    // Check if these elements exist before modifying them to avoid errors
+
     if(sendIcon && stopIcon) {
-        if (generating) {
+        // 🌟 লেখা শেষ হলেও যদি ভয়েস চলতে থাকে, তবে Stop বাটনটি থেকে যাবে!
+        if (isGeneratingText || isSpeakingTTS) {
             sendIcon.style.display = 'none';
             stopIcon.style.display = 'block';
         } else {
@@ -375,11 +386,16 @@ function updateSendButtonUI(generating) {
 }
 
 function stopGeneration() {
-    if (abortController) abortController.abort(); // Cancel backend request if ongoing
+    if (abortController) abortController.abort(); 
     stopTypingFlag = true;
-    isGenerating = false;
-    updateSendButtonUI(false);
-    if ('speechSynthesis' in window) window.speechSynthesis.cancel(); // Stop talking
+    isGeneratingText = false;
+    isSpeakingTTS = false;
+    
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel(); // 🔊 ভয়েস সাথে সাথে বন্ধ করে দেবে
+    }
+    
+    updateSendButtonUI();
 }
 
 // ==========================================
@@ -394,6 +410,11 @@ async function sendMessage() {
     if (!userText && selectedImageBase64) userText = "Please analyze this image and explain what you see.";
 
     const currentImg = selectedImageBase64;
+    
+    // 🌟 এই মেসেজটিতে ইউজার ভয়েস ব্যবহার করেছিল কি না, সেটি সেভ রাখা হচ্ছে
+    let usedVoice = lastInputWasVoice; 
+    lastInputWasVoice = false; // পরের মেসেজের জন্য ফ্ল্যাগ আবার রিসেট করে দেওয়া হলো
+
     input.value = "";
     removeImage();
 
@@ -423,9 +444,9 @@ async function sendMessage() {
     const currentThreadIndexAtStart = activeThreadIndex;
 
     // 🌟 Set UI to Generating mode
-    isGenerating = true;
+    isGeneratingText = true;
     stopTypingFlag = false;
-    updateSendButtonUI(true);
+    updateSendButtonUI();
     abortController = new AbortController();
 
     try {
@@ -441,15 +462,32 @@ async function sendMessage() {
         const data = await response.json();
         let fullReply = data.reply;
 
-        // 🔊 Text-To-Speech Logic
-        if (!stopTypingFlag && 'speechSynthesis' in window) {
+        // 🔊 Text-To-Speech Logic (🌟 শুধুমাত্র ভয়েসে প্রশ্ন করলেই এটি বাজবে)
+        if (usedVoice && !stopTypingFlag && 'speechSynthesis' in window) {
             window.speechSynthesis.cancel(); 
             let cleanText = fullReply.replace(/[*#`_]/g, ''); 
             const utterance = new SpeechSynthesisUtterance(cleanText);
             const isBengali = /[\u0980-\u09FF]/.test(cleanText);
             utterance.lang = isBengali ? 'bn-IN' : 'en-US';
             utterance.rate = 1.0; 
+            
+            // 🌟 ভয়েস শুরু হলে Stop বাটন অন থাকবে, শেষ হলে অফ হবে
+            utterance.onstart = function() {
+                isSpeakingTTS = true;
+                updateSendButtonUI();
+            };
+            utterance.onend = function() {
+                isSpeakingTTS = false;
+                updateSendButtonUI();
+            };
+            utterance.onerror = function() {
+                isSpeakingTTS = false;
+                updateSendButtonUI();
+            };
+
             window.speechSynthesis.speak(utterance);
+        } else {
+            isSpeakingTTS = false; // যদি ভয়েস ব্যবহার না করে, তবে এটি false থাকবে
         }
 
         // 🌟 TYPEWRITER ANIMATION 
@@ -461,9 +499,10 @@ async function sendMessage() {
             // If user clicked Stop or switched chats during typing
             if (activeThreadIndex !== currentThreadIndexAtStart || stopTypingFlag) {
                 window.speechSynthesis.cancel(); 
-                isGenerating = false;
-                updateSendButtonUI(false);
-                
+                isGeneratingText = false;
+                isSpeakingTTS = false;
+                updateSendButtonUI();
+
                 // Save whatever was typed so far to history
                 if (stopTypingFlag && activeThreadIndex === currentThreadIndexAtStart) {
                     thread.messages.push({ text: currentText + " 🛑 [Stopped]", sender: "ai" });
@@ -484,8 +523,8 @@ async function sendMessage() {
                 setTimeout(typeWriter, 15); 
             } else {
                 // Done generating
-                isGenerating = false;
-                updateSendButtonUI(false);
+                isGeneratingText = false;
+                updateSendButtonUI(); // 🌟 টাইপ শেষ হলে চেক করবে যে ভয়েস চলছে কি না
                 thread.messages.push({ text: fullReply, sender: "ai" });
                 saveThreads();
             }
@@ -502,7 +541,8 @@ async function sendMessage() {
             aiTextContainer.innerText = "Connection Error: " + error.message;
             aiTextContainer.parentElement.classList.add("error-message");
         }
-        isGenerating = false;
-        updateSendButtonUI(false);
+        isGeneratingText = false;
+        isSpeakingTTS = false;
+        updateSendButtonUI();
     }
 }
